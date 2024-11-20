@@ -2,10 +2,20 @@
   "name": "fuel-station",
   "module": "index.ts",
   "type": "module",
+  "scripts": {
+    "start": "bun src/server.ts",
+    "fmt": "prettier --write \"src/**/*.{js,ts,jsx,tsx,json,md}\""
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "prettier": "^3.3.3"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
   }
 }
