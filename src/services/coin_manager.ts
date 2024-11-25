@@ -27,6 +27,10 @@ const main = async () => {
     throw new Error('FUEL_FUNDER_PRIVATE_KEY is not set');
   }
 
+  if (!process.env.MINIMUM_COIN_AMOUNT) {
+    throw new Error('MINIMUM_COIN_AMOUNT is not set');
+  }
+
   const supabaseClient: SupabaseClient<Database> = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY
@@ -45,11 +49,12 @@ const main = async () => {
     fuelProvider
   );
 
-  const fuelClient = new FuelClient(
-    fuelProvider,
+  const fuelClient = new FuelClient({
+    provider: fuelProvider,
     paymasterWallet,
-    funderWallet
-  );
+    funderWallet,
+    minimumCoinAmount: Number(process.env.MINIMUM_COIN_AMOUNT),
+  });
 };
 
 main();

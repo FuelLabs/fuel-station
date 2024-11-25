@@ -1,11 +1,20 @@
 import type { BN, Coin, Provider, WalletUnlocked } from 'fuels';
 
 export class FuelClient {
-  constructor(
-    private provider: Provider,
-    private paymasterWallet: WalletUnlocked,
-    private funderWallet: WalletUnlocked
-  ) {}
+  private provider: Provider;
+  private paymasterWallet: WalletUnlocked;
+  private funderWallet: WalletUnlocked;
+
+  constructor(param: {
+    provider: Provider;
+    paymasterWallet: WalletUnlocked;
+    funderWallet: WalletUnlocked;
+    minimumCoinAmount: number;
+  }) {
+    this.provider = param.provider;
+    this.paymasterWallet = param.paymasterWallet;
+    this.funderWallet = param.funderWallet;
+  }
 
   private async getCoins(wallet: WalletUnlocked): Promise<Coin[]> {
     const coins: Coin[] = [];
