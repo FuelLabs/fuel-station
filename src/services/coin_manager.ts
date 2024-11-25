@@ -1,7 +1,8 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { config } from 'dotenv';
 import type { Database } from '../types/database.types';
-import { SupabaseDB } from '../lib';
+import { FuelClient, SupabaseDB } from '../lib';
+import { Provider, Wallet } from 'fuels';
 
 config();
 
@@ -14,6 +15,18 @@ const main = async () => {
     throw new Error('SUPABASE_ANON_KEY is not set');
   }
 
+  if (!process.env.FUEL_PROVIDER_URL) {
+    throw new Error('FUEL_PROVIDER_URL is not set');
+  }
+
+  if (!process.env.FUEL_PAYMASTER_PRIVATE_KEY) {
+    throw new Error('FUEL_PAYMASTER_PRIVATE_KEY is not set');
+  }
+
+  if (!process.env.FUEL_FUNDER_PRIVATE_KEY) {
+    throw new Error('FUEL_FUNDER_PRIVATE_KEY is not set');
+  }
+
   const supabaseClient: SupabaseClient<Database> = createClient(
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY
@@ -21,9 +34,22 @@ const main = async () => {
 
   const supabaseDB = new SupabaseDB(supabaseClient);
 
-  const totalCoins = await supabaseDB.getTotalCoinsCount();
+  const fuelProvider = await Provider.create(process.env.FUEL_PROVIDER_URL);
 
-  console.log(`Total coins: ${totalCoins}`);
+  const paymasterWallet = Wallet.fromPrivateKey(
+    process.env.FUEL_PAYMASTER_PRIVATE_KEY,
+    fuelProvider
+  );
+  const funderWallet = Wallet.fromPrivateKey(
+    process.env.FUEL_FUNDER_PRIVATE_KEY,
+    fuelProvider
+  );
+
+  const fuelClient = new FuelClient(
+    fuelProvider,
+    paymasterWallet,
+    funderWallet
+  );
 };
 
 main();
