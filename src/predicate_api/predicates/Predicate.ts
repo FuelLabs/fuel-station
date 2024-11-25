@@ -28,33 +28,35 @@ export type PredicateParameters = Omit<
 >;
 
 const abi = {
-  "encoding": "1",
-  "types": [
+  encoding: '1',
+  types: [
     {
-      "typeId": 0,
-      "type": "bool",
-      "components": null,
-      "typeParameters": null
-    }
+      typeId: 0,
+      type: 'bool',
+      components: null,
+      typeParameters: null,
+    },
   ],
-  "functions": [
+  functions: [
     {
-      "inputs": [],
-      "name": "main",
-      "output": {
-        "name": "",
-        "type": 0,
-        "typeArguments": null
+      inputs: [],
+      name: 'main',
+      output: {
+        name: '',
+        type: 0,
+        typeArguments: null,
       },
-      "attributes": null
-    }
+      attributes: null,
+    },
   ],
-  "loggedTypes": [],
-  "messagesTypes": [],
-  "configurables": []
+  loggedTypes: [],
+  messagesTypes: [],
+  configurables: [],
 };
 
-const bytecode = decompressBytecode('H4sIAAAAAAAAA5P6YMBQwsDAxAABEbH/DzAK/P/PIPUmgEHhhzFDxO8HTAG/H7CA1Eg5X2BQcWBgmMrAwDiNgwGsRsr5AYPUFwEGqZ8MDDOAYtOBcl4/GBgAs7XHrVgAAAA=');
+const bytecode = decompressBytecode(
+  'H4sIAAAAAAAAA5P6YMBQwsDAxAABEbH/DzAK/P/PIPUmgEHhhzFDxO8HTAG/H7CA1Eg5X2BQcWBgmMrAwDiNgwGsRsr5AYPUFwEGqZ8MDDOAYtOBcl4/GBgAs7XHrVgAAAA='
+);
 
 export class Predicate extends Predicate<
   PredicateInputs,
