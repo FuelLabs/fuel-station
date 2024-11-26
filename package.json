@@ -6,7 +6,11 @@
     "start": "bun src/server.ts",
     "fmt": "prettier --write \"./**/*.{js,ts,jsx,tsx,json,md}\"",
     "clear-db": "bun scripts/clear_database.ts",
-    "coin-manager": "bun run src/services/coin_manager.ts"
+    "coin-manager": "bun run src/services/coin_manager.ts",
+    "deploy-example": "bun run example/scripts/deploy.ts",
+    "mint-example": "bun run example/scripts/mint_stablecoin.ts",
+    "balance-example": "bun run example/scripts/balance.ts",
+    "send-example": "bun run example/src/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -18,6 +22,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.46.1",
     "@types/express": "^5.0.0",
+    "axios": "^1.7.8",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "fuels": "^0.97.0",

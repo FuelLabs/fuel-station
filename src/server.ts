@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import { SupabaseDB } from './lib';
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from './lib/config';
+import { Provider, ScriptTransactionRequest, Wallet } from 'fuels';
 
 config();
 
@@ -10,6 +11,12 @@ const env = envSchema.parse(process.env);
 
 const supabaseDB = new SupabaseDB(
   createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY)
+);
+
+const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
+const wallet = Wallet.fromPrivateKey(
+  env.FUEL_PAYMASTER_PRIVATE_KEY,
+  fuelProvider
 );
 
 const app = express();
@@ -43,6 +50,33 @@ app.get('/getCoin', async (req, res) => {
   console.log(coin);
 
   res.status(501).json({ error: 'Not implemented' });
+});
+
+app.post('/sign', async (req, res) => {
+  // TODO: use zod to validate the body
+  if (!req.body) {
+    return res.status(400).json({ error: 'No body provided' });
+  }
+
+  const body = req.body.request;
+
+  const request = new ScriptTransactionRequest();
+
+  request.type = body.type;
+  request.gasLimit = body.gasLimit;
+  request.script = body.script;
+  request.scriptData = body.scriptData;
+  request.maxFee = body.maxFee;
+
+  request.inputs = body.inputs;
+  request.outputs = body.outputs;
+
+  request.witnesses = body.witnesses;
+
+  // TODO: Ideally the paymaster needs to search the witness index for providing its signature
+  request.witnesses[1] = await wallet.signTransaction(request);
+
+  res.status(200).json({ signature: await wallet.signTransaction(request) });
 });
 
 app.listen(port, () => {

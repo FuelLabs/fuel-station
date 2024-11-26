@@ -1,16 +1,13 @@
 import {
   createAssetId,
-  getMintedAssetId,
-  InputCoinCoder,
   Provider,
   ScriptTransactionRequest,
   Wallet,
   ZeroBytes32,
-  type Coin,
-  type InputCoin,
 } from 'fuels';
 import { envSchema } from '../../src/lib/config';
 import { contractId, fuelAccount } from '../depolyments.json';
+import axios from 'axios';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
@@ -26,10 +23,6 @@ const main = async () => {
 
   const randomReciever = Wallet.generate();
 
-  console.log('wallet coins:', await wallet.getBalance(assetId.bits));
-
-  console.log('asset id:', assetId);
-
   const request = new ScriptTransactionRequest();
 
   const { coins } = await wallet.getCoins(assetId.bits);
@@ -38,12 +31,20 @@ const main = async () => {
   }
 
   request.addCoinInput(coins[0]);
+
+  // NOTE: addCoinInput automatically adds a change output for that particular asset's coin to the same address
+  request.outputs = [];
+
   request.addCoinOutput(randomReciever.address, 10, assetId.bits);
+  request.addChangeOutput(Wallet.generate().address, assetId.bits);
+
+  console.log('address of sender wallet:', wallet.address.toB256());
+  console.log('request outputs:', request.outputs);
 
   const gasCoin = (await paymasterWallet.getCoins()).coins[0];
 
   request.addCoinInput(gasCoin);
-  request.addVariableOutputs(1);
+  request.addChangeOutput(paymasterWallet.address, provider.getBaseAssetId());
 
   const result = await provider.estimateTxGasAndFee({
     transactionRequest: request,
@@ -52,11 +53,36 @@ const main = async () => {
   request.maxFee = result.maxFee;
   request.gasLimit = result.maxGas;
 
-  console.log('result:', result);
+  request.witnesses[0] = await wallet.signTransaction(request);
+
+  const response = await axios.post('http://localhost:3000/sign', {
+    request: request.toJSON(),
+  });
+
+  if (response.status !== 200) {
+    throw new Error('Failed to sign transaction');
+  }
+
+  if (!response.data.signature) {
+    throw new Error('No signature found');
+  }
+
+  request.witnesses[1] = response.data.signature;
+
+  const txResult = await (
+    await provider.sendTransaction(request)
+  ).waitForResult();
+
+  console.log('tx status:', txResult.status);
 
   //   const tx = await wallet.sendTransaction(request);
 
   //   console.log('tx:', tx);
+
+  console.log(
+    'balance of reciever:',
+    await provider.getBalance(randomReciever.address, assetId.bits)
+  );
 };
 
 main();
