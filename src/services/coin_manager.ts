@@ -62,8 +62,6 @@ const main = async () => {
       process.exit(1);
     }
   }
-
-  const coins = await fuelClient.getPaymasterCoins();
 };
 
 main();

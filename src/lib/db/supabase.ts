@@ -1,6 +1,6 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
-import { BN } from 'bn.js';
+import type { BN } from 'fuels';
 
 // TODO: We need to create a DB intefrace which SupabaseDB will implement
 export class SupabaseDB {
@@ -21,13 +21,8 @@ export class SupabaseDB {
   async insertCoins(
     coins: { utxo_id: string; amount: BN | string; is_locked: boolean }[]
   ): Promise<PostgrestError | null> {
-    const { error } = await this.supabaseClient.from('coins').insert(
-      coins.map((coin) => ({
-        utxo_id: coin.utxo_id,
-        amount: Number(coin.amount.toString()),
-        is_locked: coin.is_locked,
-      }))
-    );
+    // @ts-ignore
+    const { error } = await this.supabaseClient.from('coins').insert(coins);
 
     if (error) {
       return error;
