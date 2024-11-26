@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "bun src/server.ts",
-    "fmt": "prettier --write \"src/**/*.{js,ts,jsx,tsx,json,md}\"",
+    "fmt": "prettier --write \"./**/*.{js,ts,jsx,tsx,json,md}\"",
     "coin-manager": "bun run src/services/coin_manager.ts"
   },
   "devDependencies": {
