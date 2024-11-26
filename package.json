@@ -5,6 +5,7 @@
   "scripts": {
     "start": "bun src/server.ts",
     "fmt": "prettier --write \"./**/*.{js,ts,jsx,tsx,json,md}\"",
+    "clear-db": "bun scripts/clear_database.ts",
     "coin-manager": "bun run src/services/coin_manager.ts"
   },
   "devDependencies": {
