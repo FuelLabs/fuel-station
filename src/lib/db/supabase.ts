@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
 
 // TODO: We need to create a DB intefrace which SupabaseDB will implement
@@ -15,5 +15,16 @@ export class SupabaseDB {
     }
 
     return count ?? 0;
+  }
+
+  async insertCoins(
+    coins: { utxo_id: string; amount: string; is_locked: boolean }[]
+  ): Promise<PostgrestError | null> {
+    const { error } = await this.supabaseClient.from('coins').insert(coins);
+    if (error) {
+      return error;
+    }
+
+    return null;
   }
 }
