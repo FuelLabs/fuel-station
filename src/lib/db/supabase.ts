@@ -68,16 +68,17 @@ export class SupabaseDB {
   }
 
   // searches for an account, which is either not locked or has an expiry date in the past, and is not marked as needing funding
-  // TODO: We need to make the account we pick random, this should help avoid race conditions
+  // supbase functiond defined below:
+  // CREATE OR REPLACE FUNCTION get_random_next_records()
+  // RETURNS TABLE (LIKE accounts) AS $$
+  // SELECT * FROM accounts
+  // WHERE (is_locked = false OR expiry < CURRENT_TIMESTAMP)
+  // AND needs_funding = false;
+  // $$ LANGUAGE sql;
   async getNextAccount(): Promise<string | null> {
-    const { data, error } = await this.supabaseClient
-      .from('accounts')
-      .select('address')
-      .or('is_locked.false, expiry.lt.now()')
-      .eq('needs_funding', false)
-      // TODO: check if this actually works
-      .order('random()')
-      .limit(1);
+    const { data, error } = await this.supabaseClient.rpc(
+      'get_random_next_records'
+    );
 
     if (error) {
       throw error;

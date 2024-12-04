@@ -65,7 +65,12 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_random_next_records: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          like: unknown;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;
