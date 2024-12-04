@@ -87,10 +87,26 @@ export class SupabaseDB {
     return data?.[0]?.address ?? null;
   }
 
-  async setAccountNeedsFunding(address: string): Promise<void> {
+  async getAccountsThatNeedFunding(): Promise<string[]> {
+    const { data, error } = await this.supabaseClient
+      .from('accounts')
+      .select('address')
+      .eq('needs_funding', true);
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map((account) => account.address);
+  }
+
+  async setAccountNeedsFunding(
+    address: string,
+    needsFunding: boolean
+  ): Promise<void> {
     const { error } = await this.supabaseClient
       .from('accounts')
-      .update({ needs_funding: true })
+      .update({ needs_funding: needsFunding })
       .eq('address', address);
 
     if (error) {

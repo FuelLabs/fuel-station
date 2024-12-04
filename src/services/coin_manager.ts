@@ -7,6 +7,8 @@ import { envSchema } from '../lib/config';
 
 config();
 
+// TODO: We need to search for all records where needs_funding is true first, and then fund them, and then set needs_funding to false
+
 const main = async () => {
   const env = envSchema.parse(process.env);
 

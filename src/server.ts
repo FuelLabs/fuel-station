@@ -65,7 +65,7 @@ const main = async () => {
 
       const result = await fuelClient.getCoin(address, env.MINIMUM_COIN_AMOUNT);
       if (!result) {
-        await supabaseDB.setAccountNeedsFunding(address);
+        await supabaseDB.setAccountNeedsFunding(address, true);
         continue;
       }
 
