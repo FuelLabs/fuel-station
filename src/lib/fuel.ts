@@ -112,6 +112,10 @@ export class FuelClient {
     );
   }
 
+  async fundAccount(walletAddress: string, amount: number): Promise<void> {
+    await this.funderWallet.transfer(walletAddress, amount);
+  }
+
   // Fund the paymaster wallet with the minimum coin value until the minimum coin amount is reached
   async fundPaymasterCoins(
     amount: number
