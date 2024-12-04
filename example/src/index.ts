@@ -50,6 +50,10 @@ const main = async () => {
     throw new Error('No coin found');
   }
 
+  if (!data.jobId) {
+    throw new Error('No jobId found');
+  }
+
   const gasCoin: Coin = {
     id: data.coin.id,
     amount: bn(data.coin.amount),
@@ -112,6 +116,7 @@ const main = async () => {
 
   const response = await axios.post('http://localhost:3000/sign', {
     request: request.toJSON(),
+    jobId: data.jobId,
   });
 
   if (response.status !== 200) {

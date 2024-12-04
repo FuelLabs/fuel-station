@@ -189,6 +189,20 @@ export class SupabaseDB {
     return { error, jobId };
   }
 
+  async getJob(
+    jobId: string
+  ): Promise<
+    | { error: PostgrestError; job: null }
+    | { error: null; job: Database['public']['Tables']['jobs']['Row'] }
+  > {
+    const { data, error } = await this.supabaseClient
+      .from('jobs')
+      .select('*')
+      .eq('job_id', jobId);
+
+    return { error, job: data?.[0] ?? null };
+  }
+
   async updateJobStatus(
     jobId: string,
     status: 'pending' | 'timeout' | 'completed'

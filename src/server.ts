@@ -117,6 +117,20 @@ const main = async () => {
     console.log('req.body', req.body.request);
     const body = req.body.request;
 
+    const jobId = req.body.jobId;
+    const { error: getError, job } = await supabaseDB.getJob(jobId);
+    if (getError) {
+      console.error(getError);
+      return res.status(500).json({ error: 'Failed to get job' });
+    }
+
+    const account = accounts.find(({ address }) => address === job.address);
+    if (!account) {
+      return res.status(404).json({ error: 'Account not found' });
+    }
+
+    const wallet = Wallet.fromPrivateKey(account.privateKey, fuelProvider);
+
     const request = new ScriptTransactionRequest();
 
     request.type = body.type;
