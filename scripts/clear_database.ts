@@ -17,7 +17,10 @@ const main = async () => {
 
   console.log('Coins deleted successfully');
 
-  const { error: accountsError } = await supabase.from('accounts').delete().gt('id', -1);
+  const { error: accountsError } = await supabase
+    .from('accounts')
+    .delete()
+    .gt('id', -1);
 
   if (accountsError) {
     console.error('Error deleting accounts:', accountsError);

@@ -1,25 +1,28 @@
-import {sleep} from "bun"
-import { envSchema, FuelClient, SupabaseDB } from "../lib";
-import type { Database } from "../types";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { Provider, Wallet } from "fuels";
+import { sleep } from 'bun';
+import { envSchema, FuelClient, SupabaseDB } from '../lib';
+import type { Database } from '../types';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { Provider, Wallet } from 'fuels';
 
 const env = envSchema.parse(process.env);
 
-const coinManagerProcess = async (supabaseDB: SupabaseDB, fuelClient: FuelClient) => {
+const coinManagerProcess = async (
+  supabaseDB: SupabaseDB,
+  fuelClient: FuelClient
+) => {
   const unlockedAccounts = await supabaseDB.getUnlockedAccounts();
   console.log(`Found ${unlockedAccounts.length} unlocked accounts`);
 
   for (const walletAddress of unlockedAccounts) {
-    const resources = await fuelClient.getResources(walletAddress, env.MINIMUM_COIN_AMOUNT);
+    const resources = await fuelClient.getResources(
+      walletAddress,
+      env.MINIMUM_COIN_AMOUNT
+    );
     console.log(`Got ${resources} resources for ${walletAddress}`);
   }
-
-
 };
 
 const main = async () => {
-
   const supabaseClient: SupabaseClient<Database> = createClient(
     env.SUPABASE_URL,
     env.SUPABASE_ANON_KEY
@@ -46,4 +49,3 @@ const main = async () => {
 };
 
 main();
-

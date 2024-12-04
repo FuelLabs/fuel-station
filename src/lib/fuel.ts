@@ -8,6 +8,7 @@ import {
   type Provider,
   type Resource,
   type WalletUnlocked,
+  FuelError,
 } from 'fuels';
 
 export class FuelClient {
@@ -37,15 +38,30 @@ export class FuelClient {
     this.baseAssetId = this.provider.getBaseAssetId();
   }
 
-  
-  async getResources(walletAddress: string, amount: number, assetId: string = this.baseAssetId): Promise<Resource[]> 
-  {
-    return await this.provider.getResourcesToSpend(walletAddress, [
-     {
-      amount,
-      assetId
-     } 
-    ]);
+  async getResources(
+    walletAddress: string,
+    amount: number,
+    assetId: string = this.baseAssetId
+  ): Promise<Resource[]> {
+    try {
+      return await this.provider.getResourcesToSpend(walletAddress, [
+        {
+          amount,
+          assetId,
+        },
+      ]);
+    } catch (err) {
+      if (err instanceof FuelError) {
+        if (
+          err.message ===
+          "The account(s) sending the transaction don't have enough funds to cover the transaction."
+        ) {
+          return [];
+        }
+      }
+
+      throw err;
+    }
   }
 
   // TODO: We need to remove this
