@@ -30,7 +30,7 @@ const main = async () => {
 
     accounts.push({
       privateKey: wallet.privateKey,
-      publicKey: wallet.publicKey,
+      address: wallet.address.toB256(),
     });
   }
 
@@ -38,7 +38,7 @@ const main = async () => {
 
   console.log('Inserting accounts into database...');
 
-  await supabase.insertAccounts(accounts.map((account) => account.publicKey));
+  await supabase.insertAccounts(accounts.map((account) => account.address));
 
   console.log('Insert Done!');
 

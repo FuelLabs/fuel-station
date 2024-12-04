@@ -6,6 +6,7 @@ import {
   type BN,
   type Coin,
   type Provider,
+  type Resource,
   type WalletUnlocked,
 } from 'fuels';
 
@@ -17,6 +18,8 @@ export class FuelClient {
 
   private minimumCoinAmount: number;
   private minimumCoinValue: number;
+
+  private baseAssetId: string;
 
   constructor(param: {
     provider: Provider;
@@ -30,8 +33,22 @@ export class FuelClient {
     this.funderWallet = param.funderWallet;
     this.minimumCoinAmount = param.minimumCoinAmount;
     this.minimumCoinValue = param.minimumCoinValue;
+
+    this.baseAssetId = this.provider.getBaseAssetId();
   }
 
+  
+  async getResources(walletAddress: string, amount: number, assetId: string = this.baseAssetId): Promise<Resource[]> 
+  {
+    return await this.provider.getResourcesToSpend(walletAddress, [
+     {
+      amount,
+      assetId
+     } 
+    ]);
+  }
+
+  // TODO: We need to remove this
   private async getCoins(wallet: WalletUnlocked): Promise<Coin[]> {
     const coins: Coin[] = [];
 

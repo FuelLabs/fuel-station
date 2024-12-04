@@ -1,6 +1,6 @@
-export type Account = {
+export type FuelAccount = {
   privateKey: string;
-  publicKey: string;
+  address: string;
 };
 
 export * from './database.types';

@@ -18,6 +18,19 @@ export class SupabaseDB {
     return count ?? 0;
   }
 
+  async getUnlockedAccounts(): Promise<string[]> {
+    const { data, error } = await this.supabaseClient
+      .from('accounts')
+      .select('address')
+      .eq('is_locked', false);
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map((account) => account.address);
+  }
+
   async insertAccounts(addresses: string[]): Promise<void> {
     const entries = addresses.map((address) => ({ address, is_locked: false }));
     const { error } = await this.supabaseClient
