@@ -4,6 +4,7 @@ import { FuelClient, SupabaseDB } from './lib';
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from './lib/config';
 import { Provider, ScriptTransactionRequest, Wallet, type Coin } from 'fuels';
+import accounts from '../accounts.json';
 import cors from 'cors';
 
 config();
@@ -94,9 +95,17 @@ const main = async () => {
       return res.status(500).json({ error: 'Failed to lock account' });
     }
 
+    const { error: insertError, jobId } =
+      await supabaseDB.insertNewJob(address);
+    if (insertError) {
+      console.error(insertError);
+      return res.status(500).json({ error: 'Failed to insert job' });
+    }
+
+    console.log('jobId', jobId);
     console.log('sent coin:', coin);
 
-    res.status(200).send({ coin });
+    res.status(200).send({ coin, jobId });
   });
 
   app.post('/sign', async (req, res) => {
@@ -105,6 +114,7 @@ const main = async () => {
       return res.status(400).json({ error: 'No body provided' });
     }
 
+    console.log('req.body', req.body.request);
     const body = req.body.request;
 
     const request = new ScriptTransactionRequest();

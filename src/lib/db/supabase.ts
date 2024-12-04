@@ -174,4 +174,30 @@ export class SupabaseDB {
 
     return error ?? null;
   }
+
+  async insertNewJob(
+    address: string
+  ): Promise<{ error: PostgrestError | null; jobId: string }> {
+    const jobId = crypto.randomUUID();
+
+    const { error } = await this.supabaseClient.from('jobs').insert({
+      job_id: jobId,
+      address,
+      job_status: 'pending',
+    });
+
+    return { error, jobId };
+  }
+
+  async updateJobStatus(
+    jobId: string,
+    status: 'pending' | 'timeout' | 'completed'
+  ): Promise<PostgrestError | null> {
+    const { error } = await this.supabaseClient
+      .from('jobs')
+      .update({ job_status: status })
+      .eq('job_id', jobId);
+
+    return error ?? null;
+  }
 }

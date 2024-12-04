@@ -60,6 +60,24 @@ export type Database = {
         };
         Relationships: [];
       };
+      jobs: {
+        Row: {
+          address: string;
+          job_id: string;
+          job_status: string;
+        };
+        Insert: {
+          address?: string;
+          job_id: string;
+          job_status?: string;
+        };
+        Update: {
+          address?: string;
+          job_id?: string;
+          job_status?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

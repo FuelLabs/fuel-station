@@ -1,4 +1,6 @@
 import {
+  AbstractAddress,
+  Address,
   arrayify,
   bn,
   bufferFromString,
@@ -16,6 +18,7 @@ import {
   UtxoIdCoder,
   Wallet,
   ZeroBytes32,
+  type Coin,
   type Encoding,
   type TransactionRequest,
 } from 'fuels';
@@ -38,32 +41,32 @@ const main = async () => {
 
   const request = new ScriptTransactionRequest();
 
+  // TODO: use zod to validate the response
   const { data } = await axios.get<{ utxoId: string }>(
     'http://localhost:3000/getCoin'
   );
 
-  if (!data.utxoId) {
-    throw new Error('No utxoId found');
+  if (!data.coin) {
+    throw new Error('No coin found');
   }
+
+  const gasCoin: Coin = {
+    id: data.coin.id,
+    amount: bn(data.coin.amount),
+    assetId: data.coin.assetId,
+    owner: Address.fromAddressOrString(data.coin.owner),
+    blockCreated: bn(data.coin.blockCreated),
+    txCreatedIdx: bn(data.coin.txCreatedIdx),
+  };
+
+  console.log('gasCoin', gasCoin);
 
   const { coins } = await wallet.getCoins(assetId.bits);
   if (!coins.length) {
     throw new Error('No coins found');
   }
 
-  const utxoEncoded = arrayify(data.utxoId);
-  const utxoCoder = new UtxoIdCoder();
-
-  const decodeUtxo = utxoCoder.decode(utxoEncoded, 0);
-
-  const gasCoin = (await paymasterWallet.getCoins()).coins.find((coin) => {
-    // TODO: we need to improve this search
-    if (coin.id.startsWith(decodeUtxo[0].transactionId)) {
-      return true;
-    }
-
-    return false;
-  });
+  console.log('coins', coins[0]);
 
   request.addCoinInput(coins[0]);
 
@@ -107,8 +110,6 @@ const main = async () => {
   console.log('payload:', transactionIdPayload);
   console.log('b:', b);
 
-  return;
-
   const response = await axios.post('http://localhost:3000/sign', {
     request: request.toJSON(),
   });
@@ -120,6 +121,8 @@ const main = async () => {
   if (!response.data.signature) {
     throw new Error('No signature found');
   }
+
+  return;
 
   request.witnesses[1] = response.data.signature;
 
