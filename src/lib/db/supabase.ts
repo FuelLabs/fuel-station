@@ -67,6 +67,49 @@ export class SupabaseDB {
     return null;
   }
 
+  // searches for an account, which is either not locked or has an expiry date in the past, and is not marked as needing funding
+  // TODO: We need to make the account we pick random, this should help avoid race conditions
+  async getNextAccount(): Promise<string | null> {
+    const { data, error } = await this.supabaseClient
+      .from('accounts')
+      .select('address')
+      .or('is_locked.false, expiry.lt.now()')
+      .eq('needs_funding', false)
+      // TODO: check if this actually works
+      .order('random()')
+      .limit(1);
+
+    if (error) {
+      throw error;
+    }
+
+    return data?.[0]?.address ?? null;
+  }
+
+  async setAccountNeedsFunding(address: string): Promise<void> {
+    const { error } = await this.supabaseClient
+      .from('accounts')
+      .update({ needs_funding: true })
+      .eq('address', address);
+
+    if (error) {
+      throw error;
+    }
+  }
+
+  async lockAccount(
+    address: string,
+    expiry: Date
+  ): Promise<PostgrestError | null> {
+    const { error } = await this.supabaseClient
+      .from('accounts')
+      // @ts-ignore
+      .update({ is_locked: true, expiry: expiry.toISOString() })
+      .eq('address', address);
+
+    return error ?? null;
+  }
+
   async getUnlockedCoin(): Promise<{ utxo_id: string; amount: number } | null> {
     const { data, error } = await this.supabaseClient
       .from('coins')

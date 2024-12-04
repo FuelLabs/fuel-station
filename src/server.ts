@@ -1,9 +1,9 @@
 import express from 'express';
 import { config } from 'dotenv';
-import { SupabaseDB } from './lib';
+import { FuelClient, SupabaseDB } from './lib';
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from './lib/config';
-import { Provider, ScriptTransactionRequest, Wallet } from 'fuels';
+import { Provider, ScriptTransactionRequest, Wallet, type Coin } from 'fuels';
 import cors from 'cors';
 
 config();
@@ -15,10 +15,22 @@ const supabaseDB = new SupabaseDB(
 );
 
 const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
-const wallet = Wallet.fromPrivateKey(
+const funderWallet = Wallet.fromPrivateKey(
+  env.FUEL_FUNDER_PRIVATE_KEY,
+  fuelProvider
+);
+const paymasterWallet = Wallet.fromPrivateKey(
   env.FUEL_PAYMASTER_PRIVATE_KEY,
   fuelProvider
 );
+
+const fuelClient = new FuelClient({
+  provider: fuelProvider,
+  paymasterWallet,
+  funderWallet,
+  minimumCoinAmount: 1,
+  minimumCoinValue: 1,
+});
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -41,25 +53,49 @@ app.get('/health', (req, res) => {
 app.get('/getCoin', async (req, res) => {
   // TODO: Implement coin retrieval logic
 
-  const coin = await supabaseDB.getUnlockedCoin();
+  let coin: Coin | null = null;
+  let address: string | null = null;
 
-  if (!coin) {
-    return res.status(404).json({ error: 'No unlocked coin found' });
+  while (!coin) {
+    address = await supabaseDB.getNextAccount();
+    if (!address) {
+      return res.status(404).json({ error: 'No unlocked account found' });
+    }
+
+    const result = await fuelClient.getCoin(address, env.MINIMUM_COIN_AMOUNT);
+    if (!result) {
+      await supabaseDB.setAccountNeedsFunding(address);
+      continue;
+    }
+
+    coin = result;
   }
 
-  const lockError = await supabaseDB.lockCoin(
-    coin.utxo_id,
+  if (!address) {
+    return res
+      .status(404)
+      .json({ error: 'No unlocked account found after multiple attempts' });
+  }
+  if (!coin) {
+    return res
+      .status(404)
+      .json({ error: 'No unlocked coin found after multiple attempts' });
+  }
+
+  // Lock the account for 30 seconds
+  const lockError = await supabaseDB.lockAccount(
+    address,
     new Date(Date.now() + 1000 * 30)
   );
 
   if (lockError) {
     console.error(lockError);
-    return res.status(500).json({ error: 'Failed to lock coin' });
+    return res.status(500).json({ error: 'Failed to lock account' });
   }
 
   console.log('sent coin:', coin);
 
-  res.status(200).send({ utxoId: coin.utxo_id });
+  res.status(200).send({ coin });
 });
 
 app.post('/sign', async (req, res) => {

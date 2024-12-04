@@ -15,18 +15,21 @@ export type Database = {
           expiry: string | null;
           id: number;
           is_locked: boolean;
+          needs_funding: boolean | null;
         };
         Insert: {
           address?: string;
           expiry?: string | null;
           id?: number;
           is_locked: boolean;
+          needs_funding?: boolean | null;
         };
         Update: {
           address?: string;
           expiry?: string | null;
           id?: number;
           is_locked?: boolean;
+          needs_funding?: boolean | null;
         };
         Relationships: [];
       };
