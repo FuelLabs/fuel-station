@@ -38,30 +38,35 @@ export class FuelClient {
     this.baseAssetId = this.provider.getBaseAssetId();
   }
 
-  async getResources(
+  // This function will always return a single coin if a coin with a value greater than or equal to the value provided in argument is found
+  async getCoin(
     walletAddress: string,
     amount: number,
     assetId: string = this.baseAssetId
-  ): Promise<Resource[]> {
-    try {
-      return await this.provider.getResourcesToSpend(walletAddress, [
-        {
-          amount,
-          assetId,
-        },
-      ]);
-    } catch (err) {
-      if (err instanceof FuelError) {
-        if (
-          err.message ===
-          "The account(s) sending the transaction don't have enough funds to cover the transaction."
-        ) {
-          return [];
-        }
+  ): Promise<Coin | null> {
+    let nextCursor: string | undefined = undefined;
+
+    while (true) {
+      const result = await this.provider.getCoins(walletAddress, assetId, {
+        after: nextCursor,
+      });
+
+      const coin = result.coins.find((coin) => {
+        return coin.amount.gte(amount);
+      });
+
+      if (coin) {
+        return coin;
       }
 
-      throw err;
+      if (!result.pageInfo.endCursor) {
+        break;
+      }
+
+      nextCursor = result.pageInfo.endCursor;
     }
+
+    return null;
   }
 
   // TODO: We need to remove this

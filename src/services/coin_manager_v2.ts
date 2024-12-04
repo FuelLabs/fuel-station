@@ -16,25 +16,22 @@ const coinManagerProcess = async (
   console.log(`Found ${unlockedAccounts.length} unlocked accounts`);
 
   for (const walletAddress of unlockedAccounts) {
-    // TODO: We are assuming that the getResources will return a single coin if a coin with highe or equal value to the minimum coin value exists
-    // i.e: If we query for 10 coins, and the accounts has [10, 5, 1, 2, 2]
-    // then getResources will return [10] and not [10, 5, 1, 2, 2]
-    // if this is not the case, we need to create our own function for this
-    const resources = await fuelClient.getResources(
+    const coin = await fuelClient.getCoin(
       walletAddress,
       env.MINIMUM_COIN_AMOUNT
     );
-    console.log(`Got ${resources} resources for ${walletAddress}`);
+    console.log(`Got coin for ${walletAddress}`);
 
-    if (resources.length === 0 && resources.length > 1) {
-      console.log(
-        `${resources.length} resources found for ${walletAddress}, funding ...`
-      );
+    if (!coin) {
+      console.log(`coin not found for ${walletAddress}, funding ...`);
 
       await fuelClient.fundAccount(walletAddress, env.MINIMUM_COIN_VALUE * 10);
       console.log(
         `Funded ${walletAddress} with ${env.MINIMUM_COIN_VALUE * 10} coins`
       );
+
+      // 1 second
+      await sleep(1000);
     }
   }
 };
@@ -51,8 +48,14 @@ const main = async () => {
 
   const fuelClient = new FuelClient({
     provider: fuelProvider,
-    paymasterWallet: Wallet.fromPrivateKey(env.FUEL_PAYMASTER_PRIVATE_KEY),
-    funderWallet: Wallet.fromPrivateKey(env.FUEL_FUNDER_PRIVATE_KEY),
+    paymasterWallet: Wallet.fromPrivateKey(
+      env.FUEL_PAYMASTER_PRIVATE_KEY,
+      fuelProvider
+    ),
+    funderWallet: Wallet.fromPrivateKey(
+      env.FUEL_FUNDER_PRIVATE_KEY,
+      fuelProvider
+    ),
     minimumCoinAmount: env.MINIMUM_COIN_AMOUNT,
     minimumCoinValue: env.MINIMUM_COIN_VALUE,
   });
