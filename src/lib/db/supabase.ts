@@ -6,6 +6,29 @@ import type { BN } from 'fuels';
 export class SupabaseDB {
   constructor(private supabaseClient: SupabaseClient<Database>) {}
 
+  async getTotatAccountsCount(): Promise<number> {
+    const { count, error } = await this.supabaseClient
+      .from('accounts')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      throw error;
+    }
+
+    return count ?? 0;
+  }
+
+  async insertAccounts(addresses: string[]): Promise<void> {
+    const entries = addresses.map((address) => ({ address, is_locked: false }));
+    const { error } = await this.supabaseClient
+      .from('accounts')
+      .insert(entries);
+
+    if (error) {
+      throw error;
+    }
+  }
+
   async getTotalCoinsCount(): Promise<number> {
     const { count, error } = await this.supabaseClient
       .from('coins')

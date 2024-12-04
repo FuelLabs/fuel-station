@@ -55,6 +55,8 @@ const main = async () => {
 
   const balanceAfterMinting = await reciever.getBalances();
   console.log('balance after minting is,', balanceAfterMinting);
+
+  console.log('reciever address:', reciever.address.toB256());
 };
 
 main();

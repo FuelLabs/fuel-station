@@ -8,6 +8,7 @@ export const envSchema = z.object({
   FUEL_FUNDER_PRIVATE_KEY: z.string(),
   MINIMUM_COIN_AMOUNT: z.string(),
   MINIMUM_COIN_VALUE: z.string(),
+  NUM_OF_ACCOUNTS: z.coerce.number(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

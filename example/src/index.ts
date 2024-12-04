@@ -1,13 +1,28 @@
 import {
+  arrayify,
+  bn,
+  bufferFromString,
+  concat,
   createAssetId,
+  hexlify,
+  InputType,
+  OutputType,
   Provider,
   ScriptTransactionRequest,
+  stringFromBuffer,
+  TransactionCoder,
+  TransactionType,
+  uint64ToBytesBE,
+  UtxoIdCoder,
   Wallet,
   ZeroBytes32,
+  type Encoding,
+  type TransactionRequest,
 } from 'fuels';
 import { envSchema } from '../../src/lib/config';
-import { contractId, fuelAccount } from '../depolyments.json';
+import { contractId, fuelAccount, assetId } from '../depolyments.json';
 import axios from 'axios';
+import { clone } from 'ramda';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
@@ -19,16 +34,36 @@ const main = async () => {
     provider
   );
 
-  const assetId = createAssetId(contractId, ZeroBytes32);
-
   const randomReciever = Wallet.generate();
 
   const request = new ScriptTransactionRequest();
+
+  const { data } = await axios.get<{ utxoId: string }>(
+    'http://localhost:3000/getCoin'
+  );
+
+  if (!data.utxoId) {
+    throw new Error('No utxoId found');
+  }
 
   const { coins } = await wallet.getCoins(assetId.bits);
   if (!coins.length) {
     throw new Error('No coins found');
   }
+
+  const utxoEncoded = arrayify(data.utxoId);
+  const utxoCoder = new UtxoIdCoder();
+
+  const decodeUtxo = utxoCoder.decode(utxoEncoded, 0);
+
+  const gasCoin = (await paymasterWallet.getCoins()).coins.find((coin) => {
+    // TODO: we need to improve this search
+    if (coin.id.startsWith(decodeUtxo[0].transactionId)) {
+      return true;
+    }
+
+    return false;
+  });
 
   request.addCoinInput(coins[0]);
 
@@ -37,11 +72,6 @@ const main = async () => {
 
   request.addCoinOutput(randomReciever.address, 10, assetId.bits);
   request.addChangeOutput(Wallet.generate().address, assetId.bits);
-
-  console.log('address of sender wallet:', wallet.address.toB256());
-  console.log('request outputs:', request.outputs);
-
-  const gasCoin = (await paymasterWallet.getCoins()).coins[0];
 
   request.addCoinInput(gasCoin);
   request.addChangeOutput(paymasterWallet.address, provider.getBaseAssetId());
@@ -54,6 +84,30 @@ const main = async () => {
   request.gasLimit = result.maxGas;
 
   request.witnesses[0] = await wallet.signTransaction(request);
+
+  console.log('signature:', await wallet.signTransaction(request));
+
+  const transactionIdPayload = getTransactionIdPayload(
+    request,
+    provider.getChainId()
+  );
+
+  console.log(
+    'sign message:',
+    await wallet.signMessage(stringFromBuffer(transactionIdPayload))
+  );
+
+  //   const payload = new Uint8Array([0, 1, 2, 3, 4, 5, 6]);
+
+  //   const a = stringFromBuffer(transactionIdPayload);
+  const a = new TextDecoder().decode(transactionIdPayload);
+  const b = bufferFromString(a, 'utf-8');
+
+  console.log('a:', a);
+  console.log('payload:', transactionIdPayload);
+  console.log('b:', b);
+
+  return;
 
   const response = await axios.post('http://localhost:3000/sign', {
     request: request.toJSON(),
@@ -69,6 +123,11 @@ const main = async () => {
 
   request.witnesses[1] = response.data.signature;
 
+  console.log(
+    'reciever balance before:',
+    await provider.getBalance(randomReciever.address, assetId.bits)
+  );
+
   const txResult = await (
     await provider.sendTransaction(request)
   ).waitForResult();
@@ -80,9 +139,99 @@ const main = async () => {
   //   console.log('tx:', tx);
 
   console.log(
-    'balance of reciever:',
+    'balance of reciever after:',
     await provider.getBalance(randomReciever.address, assetId.bits)
   );
 };
+
+// NOTE: we use this because wallet.signMessage hashes the payload before signing, so we can't directly send the transactionId if we want to get the signed message
+export function getTransactionIdPayload(
+  transactionRequest: TransactionRequest,
+  chainId: number
+) {
+  const transaction = transactionRequest.toTransaction();
+
+  if (transaction.type === TransactionType.Script) {
+    transaction.receiptsRoot = ZeroBytes32;
+  }
+
+  // Zero out input fields
+  transaction.inputs = transaction.inputs.map((input) => {
+    const inputClone = clone(input);
+
+    switch (inputClone.type) {
+      // Zero out on signing: txPointer, predicateGasUsed
+      case InputType.Coin: {
+        inputClone.txPointer = {
+          blockHeight: 0,
+          txIndex: 0,
+        };
+        inputClone.predicateGasUsed = bn(0);
+        return inputClone;
+      }
+      // Zero out on signing: predicateGasUsed
+      case InputType.Message: {
+        inputClone.predicateGasUsed = bn(0);
+        return inputClone;
+      }
+      // Zero out on signing: txID, outputIndex, balanceRoot, stateRoot, and txPointer
+      case InputType.Contract: {
+        inputClone.txPointer = {
+          blockHeight: 0,
+          txIndex: 0,
+        };
+        inputClone.txID = ZeroBytes32;
+        inputClone.outputIndex = 0;
+        inputClone.balanceRoot = ZeroBytes32;
+        inputClone.stateRoot = ZeroBytes32;
+        return inputClone;
+      }
+      default:
+        return inputClone;
+    }
+  });
+  // Zero out output fields
+  transaction.outputs = transaction.outputs.map((output) => {
+    const outputClone = clone(output);
+
+    switch (outputClone.type) {
+      // Zero out on signing: balanceRoot, stateRoot
+      case OutputType.Contract: {
+        outputClone.balanceRoot = ZeroBytes32;
+        outputClone.stateRoot = ZeroBytes32;
+        return outputClone;
+      }
+      // Zero out on signing: amount
+      case OutputType.Change: {
+        outputClone.amount = bn(0);
+        return outputClone;
+      }
+      // Zero out on signing: amount, to and assetId
+      case OutputType.Variable: {
+        outputClone.to = ZeroBytes32;
+        outputClone.amount = bn(0);
+        outputClone.assetId = ZeroBytes32;
+        return outputClone;
+      }
+      default:
+        return outputClone;
+    }
+  });
+  transaction.witnessesCount = 0;
+  transaction.witnesses = [];
+
+  const chainIdBytes = uint64ToBytesBE(chainId);
+  const concatenatedData = concat([
+    chainIdBytes,
+    new TransactionCoder().encode(transaction),
+  ]);
+
+  return concatenatedData;
+}
+
+// const stringFromBuffer = (
+//     buffer: Uint8Array,
+//     encoding: Encoding = 'utf-8'
+//   ): string => Buffer.from(buffer).toString(encoding);
 
 main();

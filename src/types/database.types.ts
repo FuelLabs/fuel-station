@@ -9,6 +9,27 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          account_address: string;
+          expiry: string | null;
+          id: number;
+          is_locked: boolean;
+        };
+        Insert: {
+          account_address?: string;
+          expiry?: string | null;
+          id?: number;
+          is_locked: boolean;
+        };
+        Update: {
+          account_address?: string;
+          expiry?: string | null;
+          id?: number;
+          is_locked?: boolean;
+        };
+        Relationships: [];
+      };
       coins: {
         Row: {
           amount: number;

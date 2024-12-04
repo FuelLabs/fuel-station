@@ -6,14 +6,17 @@
     "start": "bun src/server.ts",
     "fmt": "prettier --write \"./**/*.{js,ts,jsx,tsx,json,md}\"",
     "clear-db": "bun scripts/clear_database.ts",
+    "unlock-coins": "bun scripts/unlock_all_coins.ts",
     "coin-manager": "bun run src/services/coin_manager.ts",
     "deploy-example": "bun run example/scripts/deploy.ts",
     "mint-example": "bun run example/scripts/mint_stablecoin.ts",
     "balance-example": "bun run example/scripts/balance.ts",
-    "send-example": "bun run example/src/index.ts"
+    "send-example": "bun run example/src/index.ts",
+    "init-accounts": "bun scripts/init_accounts.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
+    "@types/cors": "^2.8.17",
     "prettier": "^3.3.3"
   },
   "peerDependencies": {
@@ -22,10 +25,13 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.46.1",
     "@types/express": "^5.0.0",
+    "@types/ramda": "^0.30.2",
     "axios": "^1.7.8",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "fuels": "^0.97.0",
+    "ramda": "^0.30.1",
     "zod": "^3.23.8"
   }
 }

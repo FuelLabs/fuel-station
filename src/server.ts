@@ -4,6 +4,7 @@ import { SupabaseDB } from './lib';
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from './lib/config';
 import { Provider, ScriptTransactionRequest, Wallet } from 'fuels';
+import cors from 'cors';
 
 config();
 
@@ -21,6 +22,15 @@ const wallet = Wallet.fromPrivateKey(
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+// Basic CORS setup
+app.use(
+  cors({
+    origin: 'http://localhost:5173', // React app's URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  })
+);
 
 app.use(express.json());
 
@@ -47,9 +57,9 @@ app.get('/getCoin', async (req, res) => {
     return res.status(500).json({ error: 'Failed to lock coin' });
   }
 
-  console.log(coin);
+  console.log('sent coin:', coin);
 
-  res.status(501).json({ error: 'Not implemented' });
+  res.status(200).send({ utxoId: coin.utxo_id });
 });
 
 app.post('/sign', async (req, res) => {

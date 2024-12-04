@@ -1,6 +1,7 @@
 import {
   hexlify,
   OutputType,
+  sleep,
   UtxoIdCoder,
   type BN,
   type Coin,

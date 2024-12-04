@@ -1,4 +1,4 @@
-import { Provider, Wallet } from 'fuels';
+import { createAssetId, Provider, Wallet, ZeroBytes32 } from 'fuels';
 import { config } from 'dotenv';
 import { DummyStablecoinFactory } from '../src/dummy_stablecoin_artifact';
 import { envSchema } from '../../src/lib/config';
@@ -32,8 +32,11 @@ const main = async () => {
   const stableCoinFactor = new DummyStablecoinFactory(wallet);
   const { contractId, waitForTransactionId } = await stableCoinFactor.deploy();
 
+  const assetId = createAssetId(contractId, ZeroBytes32);
+
   await waitForTransactionId();
   console.log('deployed to contractId: ', contractId);
+  console.log('assetId: ', assetId);
 
   const fuelAccount = Wallet.generate();
 
@@ -42,6 +45,7 @@ const main = async () => {
     JSON.stringify(
       {
         contractId,
+        assetId,
         fuelAccount: {
           privateKey: fuelAccount.privateKey,
           publicKey: fuelAccount.publicKey,
