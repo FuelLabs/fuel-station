@@ -1,9 +1,15 @@
 import express from 'express';
 import { config } from 'dotenv';
-import { AllocateCoinResponseSchema, FuelClient, SupabaseDB } from './lib';
+import {
+  AllocateCoinResponseSchema,
+  FuelClient,
+  ScriptRequestSignSchema,
+  SupabaseDB,
+} from './lib';
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from './lib/schema/config';
 import {
+  bn,
   normalizeJSON,
   Provider,
   ScriptTransactionRequest,
@@ -130,15 +136,21 @@ const main = async () => {
   });
 
   app.post('/sign', async (req, res) => {
-    // TODO: use zod to validate the body
-    if (!req.body) {
-      return res.status(400).json({ error: 'No body provided' });
+    const { success, error, data } = ScriptRequestSignSchema.safeParse(
+      req.body
+    );
+
+    if (!success) {
+      console.error(error);
+      return res.status(400).json({ error: 'Invalid request body' });
     }
 
-    console.log('req.body', req.body.request);
-    const body = req.body.request;
+    console.log('req.body', data);
 
-    const jobId = req.body.jobId;
+    const scriptRequest = data.request;
+
+    const jobId = data.jobId;
+    console.log('jobId', jobId);
     const { error: getError, job } = await supabaseDB.getJob(jobId);
     if (getError) {
       console.error(getError);
@@ -154,16 +166,23 @@ const main = async () => {
 
     const request = new ScriptTransactionRequest();
 
-    request.type = body.type;
-    request.gasLimit = body.gasLimit;
-    request.script = body.script;
-    request.scriptData = body.scriptData;
-    request.maxFee = body.maxFee;
+    request.type = scriptRequest.type;
 
-    request.inputs = body.inputs;
-    request.outputs = body.outputs;
+    // TODO: do explicit type conversion to remove the ts-ignore
+    // we are ts-ignoring, because even with different types, it still works
+    // @ts-ignore
+    request.gasLimit = scriptRequest.gasLimit;
+    // @ts-ignore
+    request.script = scriptRequest.script;
+    // @ts-ignore
+    request.scriptData = scriptRequest.scriptData;
+    // @ts-ignore
+    request.maxFee = scriptRequest.maxFee;
 
-    request.witnesses = body.witnesses;
+    request.inputs = scriptRequest.inputs;
+    request.outputs = scriptRequest.outputs;
+
+    request.witnesses = scriptRequest.witnesses;
 
     // TODO: Ideally the paymaster needs to search the witness index for providing its signature
     request.witnesses[1] = await wallet.signTransaction(request);

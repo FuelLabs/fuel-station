@@ -43,7 +43,7 @@ const main = async () => {
 
   // TODO: use zod to validate the response
   const { data } = await axios.post<{ utxoId: string }>(
-    'http://localhost:3000/getCoin'
+    'http://localhost:3000/allocate-coin'
   );
 
   if (!data.coin) {
@@ -72,6 +72,7 @@ const main = async () => {
 
   console.log('coins', coins[0]);
 
+  request.addContractInputAndOutput(Address.fromAddressOrString(contractId));
   request.addCoinInput(coins[0]);
 
   // NOTE: addCoinInput automatically adds a change output for that particular asset's coin to the same address
