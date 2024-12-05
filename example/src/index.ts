@@ -22,7 +22,7 @@ import {
   type Encoding,
   type TransactionRequest,
 } from 'fuels';
-import { envSchema } from '../../src/lib/config';
+import { envSchema } from '../../src/lib/schema/config';
 import { contractId, fuelAccount, assetId } from '../depolyments.json';
 import axios from 'axios';
 import { clone } from 'ramda';
@@ -42,7 +42,7 @@ const main = async () => {
   const request = new ScriptTransactionRequest();
 
   // TODO: use zod to validate the response
-  const { data } = await axios.get<{ utxoId: string }>(
+  const { data } = await axios.post<{ utxoId: string }>(
     'http://localhost:3000/getCoin'
   );
 

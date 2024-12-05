@@ -1,3 +1,4 @@
 export * from './db';
 export * from './fuel';
-export * from './config';
+export * from './schema/config';
+export * from './schema/api';

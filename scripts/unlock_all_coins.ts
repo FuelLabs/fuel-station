@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { envSchema } from '../src/lib/config';
+import { envSchema } from '../src/lib/schema/config';
 import type { Database } from '../src/types/database.types';
 
 const main = async () => {

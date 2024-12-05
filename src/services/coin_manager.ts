@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import type { Database } from '../types/database.types';
 import { FuelClient, SupabaseDB } from '../lib';
 import { Provider, Wallet } from 'fuels';
-import { envSchema } from '../lib/config';
+import { envSchema } from '../lib/schema/config';
 
 config();
 

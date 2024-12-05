@@ -4,3 +4,4 @@ export type FuelAccount = {
 };
 
 export * from './database.types';
+export * from './api.types';

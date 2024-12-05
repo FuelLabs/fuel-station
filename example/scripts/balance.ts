@@ -1,6 +1,6 @@
 import { Provider, Wallet } from 'fuels';
 import { config } from 'dotenv';
-import { envSchema } from '../../src/lib/config';
+import { envSchema } from '../../src/lib/schema/config';
 import { fuelAccount } from '../depolyments.json';
 
 config();

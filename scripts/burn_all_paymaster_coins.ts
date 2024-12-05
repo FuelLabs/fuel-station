@@ -1,5 +1,5 @@
 import { Provider, ScriptTransactionRequest, Wallet } from 'fuels';
-import { envSchema } from '../src/lib/config';
+import { envSchema } from '../src/lib/schema/config';
 
 const main = async () => {
   const env = envSchema.parse(process.env);

@@ -1,7 +1,7 @@
 import { bn, Provider, Wallet } from 'fuels';
 import { config } from 'dotenv';
 import { DummyStablecoin } from '../src/dummy_stablecoin_artifact';
-import { envSchema } from '../../src/lib/config';
+import { envSchema } from '../../src/lib/schema/config';
 import { contractId, fuelAccount } from '../depolyments.json';
 
 config();

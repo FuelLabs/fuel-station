@@ -1,11 +1,18 @@
 import express from 'express';
 import { config } from 'dotenv';
-import { FuelClient, SupabaseDB } from './lib';
+import { AllocateCoinResponseSchema, FuelClient, SupabaseDB } from './lib';
 import { createClient } from '@supabase/supabase-js';
-import { envSchema } from './lib/config';
-import { Provider, ScriptTransactionRequest, Wallet, type Coin } from 'fuels';
+import { envSchema } from './lib/schema/config';
+import {
+  normalizeJSON,
+  Provider,
+  ScriptTransactionRequest,
+  Wallet,
+  type Coin,
+} from 'fuels';
 import accounts from '../accounts.json';
 import cors from 'cors';
+import type { AllocateCoinResponse, TypedResponse } from './types';
 
 config();
 
@@ -48,11 +55,11 @@ const main = async () => {
 
   app.use(express.json());
 
-  app.get('/health', (req, res) => {
+  app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'healthy' });
   });
 
-  app.get('/getCoin', async (req, res) => {
+  app.post('/allocate-coin', async (req, res: AllocateCoinResponse) => {
     // TODO: Implement coin retrieval logic
 
     let coin: Coin | null = null;
@@ -105,7 +112,21 @@ const main = async () => {
     console.log('jobId', jobId);
     console.log('sent coin:', coin);
 
-    res.status(200).send({ coin, jobId });
+    const {
+      success,
+      data: response,
+      error,
+    } = AllocateCoinResponseSchema.safeParse({
+      coin: normalizeJSON(coin),
+      jobId,
+    });
+
+    if (!success) {
+      console.error(error);
+      return res.status(500).json({ error: 'Failed to allocate coin' });
+    }
+
+    res.status(200).send(response);
   });
 
   app.post('/sign', async (req, res) => {

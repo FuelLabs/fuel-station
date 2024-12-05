@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { envSchema } from '../src/lib/config';
+import { envSchema } from '../src/lib/schema/config';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
