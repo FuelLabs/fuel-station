@@ -1,17 +1,61 @@
+import { sleep } from 'bun';
+import { envSchema, FuelClient, SupabaseDB } from '../lib';
+import type { Database } from '../types';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { config } from 'dotenv';
-import type { Database } from '../types/database.types';
-import { FuelClient, SupabaseDB } from '../lib';
 import { Provider, Wallet } from 'fuels';
-import { envSchema } from '../lib/schema/config';
 
-config();
+const env = envSchema.parse(process.env);
 
-// TODO: We need to search for all records where needs_funding is true first, and then fund them, and then set needs_funding to false
+// We work with the assumption that the account always has a single coin with a great value than the minimum coin value
+// Working with a single coin assumption allows us to simplify the logic
+const coinManagerProcess = async (
+  supabaseDB: SupabaseDB,
+  fuelClient: FuelClient
+) => {
+  // We first fetch all accounts which need funding
+  const accountsThatNeedFunding = await supabaseDB.getAccountsThatNeedFunding();
+  for (const walletAddress of accountsThatNeedFunding) {
+    const coin = await fuelClient.getCoin(
+      walletAddress,
+      env.MINIMUM_COIN_AMOUNT
+    );
+
+    if (!coin) {
+      console.log(`coin not found for ${walletAddress}, funding ...`);
+      await fuelClient.fundAccount(walletAddress, env.MINIMUM_COIN_VALUE * 10);
+      console.log(
+        `Funded ${walletAddress} with ${env.MINIMUM_COIN_VALUE * 10} coins`
+      );
+    }
+
+    await supabaseDB.setAccountNeedsFunding(walletAddress, false);
+  }
+
+  const unlockedAccounts = await supabaseDB.getUnlockedAccounts();
+  console.log(`Found ${unlockedAccounts.length} unlocked accounts`);
+
+  for (const walletAddress of unlockedAccounts) {
+    const coin = await fuelClient.getCoin(
+      walletAddress,
+      env.MINIMUM_COIN_AMOUNT
+    );
+    console.log(`Got coin for ${walletAddress}`);
+
+    if (!coin) {
+      console.log(`coin not found for ${walletAddress}, funding ...`);
+
+      await fuelClient.fundAccount(walletAddress, env.MINIMUM_COIN_VALUE * 10);
+      console.log(
+        `Funded ${walletAddress} with ${env.MINIMUM_COIN_VALUE * 10} coins`
+      );
+
+      // 1 second
+      await sleep(1000);
+    }
+  }
+};
 
 const main = async () => {
-  const env = envSchema.parse(process.env);
-
   const supabaseClient: SupabaseClient<Database> = createClient(
     env.SUPABASE_URL,
     env.SUPABASE_ANON_KEY
@@ -21,48 +65,25 @@ const main = async () => {
 
   const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
 
-  const paymasterWallet = Wallet.fromPrivateKey(
-    env.FUEL_PAYMASTER_PRIVATE_KEY,
-    fuelProvider
-  );
-
-  const funderWallet = Wallet.fromPrivateKey(
-    env.FUEL_FUNDER_PRIVATE_KEY,
-    fuelProvider
-  );
-
   const fuelClient = new FuelClient({
     provider: fuelProvider,
-    paymasterWallet,
-    funderWallet,
-    minimumCoinAmount: Number(process.env.MINIMUM_COIN_AMOUNT),
-    minimumCoinValue: Number(process.env.MINIMUM_COIN_VALUE),
+    paymasterWallet: Wallet.fromPrivateKey(
+      env.FUEL_PAYMASTER_PRIVATE_KEY,
+      fuelProvider
+    ),
+    funderWallet: Wallet.fromPrivateKey(
+      env.FUEL_FUNDER_PRIVATE_KEY,
+      fuelProvider
+    ),
+    minimumCoinAmount: env.MINIMUM_COIN_AMOUNT,
+    minimumCoinValue: env.MINIMUM_COIN_VALUE,
   });
 
-  if (
-    (await fuelClient.getPaymasterCoins()).length <
-    fuelClient.getMinimumCoinAmount()
-  ) {
-    console.log(
-      `Funding paymaster with ${fuelClient.getMinimumCoinValue() + 10} coins`
-    );
+  while (true) {
+    await coinManagerProcess(supabaseDB, fuelClient);
 
-    const newOutputs = await fuelClient.fundPaymasterCoins(
-      fuelClient.getMinimumCoinValue() + 10
-    );
-
-    const error = await supabaseDB.insertCoins(
-      newOutputs.map((output) => ({
-        utxo_id: output.utxoId,
-        amount: output.amount.toString(),
-        is_locked: false,
-      }))
-    );
-
-    if (error) {
-      console.error('Error inserting coins:', error);
-      process.exit(1);
-    }
+    // 5 seconds
+    await sleep(5000);
   }
 };
 
