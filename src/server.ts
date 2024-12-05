@@ -165,15 +165,99 @@ const main = async () => {
     const jobId = data.jobId;
     console.log('jobId', jobId);
 
-    const { error: getError, job } = await supabaseDB.getJob(jobId);
-    if (getError) {
-      console.error(getError);
+    const { error: getJobError, job } = await supabaseDB.getJob(jobId);
+    if (getJobError) {
+      console.error(getJobError);
       return res.status(500).json({ error: 'Failed to get job' });
+    }
+
+    const { error: getAccountError, account: accountData } =
+      await supabaseDB.getAccount(job.address);
+    if (getAccountError) {
+      console.error(getAccountError);
+      return res.status(500).json({ error: 'Failed to get account' });
+    }
+    if (!accountData) {
+      return res.status(404).json({ error: 'Account data not found' });
+    }
+
+    // This is to sanity check that the account has not been unlocked by another request and we don't accidentally unlock it
+    if (accountData.expiry !== job.expiry) {
+      return res.status(400).json({ error: 'Job expired' });
+    }
+
+    if (new Date(job.expiry) < new Date()) {
+      const unlockError = await supabaseDB.unlockAccount(job.address);
+
+      if (unlockError) {
+        console.error(unlockError);
+        return res.status(500).json({ error: 'Failed to unlock account' });
+      }
+
+      return res.status(400).json({ error: 'Job expired' });
     }
 
     const account = accounts.find(({ address }) => address === job.address);
     if (!account) {
       return res.status(404).json({ error: 'Account not found' });
+    }
+
+    const inputCoinsBelongingToAccount = scriptRequest.inputs.filter(
+      (input) => {
+        if (input.type === 0) {
+          if (input.owner === job.address) {
+            return true;
+          }
+        }
+      }
+    );
+
+    if (!inputCoinsBelongingToAccount) {
+      return res.status(400).json({
+        error: 'No input coins belonging to account in the script transaction',
+      });
+    }
+
+    if (inputCoinsBelongingToAccount.length > 1) {
+      return res.status(400).json({
+        error:
+          'More than 1 input coin belonging to account in the script transaction',
+      });
+    }
+
+    const inputCoin = inputCoinsBelongingToAccount[0];
+    if (inputCoin.type !== 0) {
+      return res.status(400).json({
+        error: 'Input coin is not a coin input',
+      });
+    }
+
+    const outputCoinsBelongingToAccount = scriptRequest.outputs.filter(
+      (output) => {
+        if (output.to === job.address) {
+          return true;
+        }
+      }
+    );
+
+    if (!outputCoinsBelongingToAccount) {
+      return res.status(400).json({
+        error: 'No output coins belonging to account in the script transaction',
+      });
+    }
+
+    if (outputCoinsBelongingToAccount.length > 1) {
+      return res.status(400).json({
+        error:
+          'More than 1 output coin belonging to account in the script transaction',
+      });
+    }
+
+    const outputCoin = outputCoinsBelongingToAccount[0];
+    if (outputCoin.type === 2) {
+      return res.status(400).json({
+        error: 'Output coin is a change output',
+      });
     }
 
     const wallet = Wallet.fromPrivateKey(account.privateKey, fuelProvider);
@@ -198,8 +282,25 @@ const main = async () => {
 
     request.witnesses = scriptRequest.witnesses;
 
+    const witnessIndex = inputCoin.witnessIndex;
     // TODO: Ideally the paymaster needs to search the witness index for providing its signature
-    request.witnesses[1] = await wallet.signTransaction(request);
+    request.witnesses[witnessIndex] = await wallet.signTransaction(request);
+
+    const { gasLimit, gasPrice, maxGas, maxFee } =
+      await wallet.provider.estimateTxGasAndFee({
+        transactionRequest: request,
+      });
+
+    // we add some padding, we need to adjust this
+    const maxTotalFee = maxGas.mul(gasPrice).add(maxFee).add(200);
+
+    const isOutputCoinAmountValid = bn(outputCoin.amount).gte(
+      bn(inputCoin.amount).sub(maxTotalFee)
+    );
+
+    if (!isOutputCoinAmountValid) {
+      return res.status(400).json({ error: 'Output coin amount is too low' });
+    }
 
     res.status(200).json({ signature: await wallet.signTransaction(request) });
   });

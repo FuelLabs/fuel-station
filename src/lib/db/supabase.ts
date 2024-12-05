@@ -31,6 +31,33 @@ export class SupabaseDB {
     return data.map((account) => account.address);
   }
 
+  async unlockAccount(address: string): Promise<PostgrestError | null> {
+    const { error } = await this.supabaseClient
+      .from('accounts')
+      .update({ is_locked: false, expiry: null })
+      .eq('address', address);
+
+    return error;
+  }
+
+  async getAccount(
+    address: string
+  ): Promise<
+    | { error: PostgrestError; account: null }
+    | { error: null; account: Database['public']['Tables']['accounts']['Row'] }
+  > {
+    const { data, error } = await this.supabaseClient
+      .from('accounts')
+      .select('*')
+      .eq('address', address);
+
+    if (error) {
+      return { error, account: null };
+    }
+
+    return { error: null, account: data?.[0] ?? null };
+  }
+
   async isAccountLockExpired(
     address: string
   ): Promise<{ error: PostgrestError | Error | null; expired: boolean }> {
