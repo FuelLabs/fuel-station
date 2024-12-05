@@ -172,7 +172,7 @@ const main = async () => {
   console.log('request:', request.toJSON());
 
   const txResult = await (
-    await sendTransaction(provider, request)
+    await provider.sendTransaction(request)
   ).waitForResult();
 
   console.log('tx status:', txResult.status);
@@ -271,38 +271,6 @@ export function getTransactionIdPayload(
 
   return concatenatedData;
 }
-
-const sendTransaction = async (
-  provider: Provider,
-  transactionRequestLike: TransactionRequestLike
-): Promise<TransactionResponse> => {
-  const transactionRequest = transactionRequestify(transactionRequestLike);
-  // if (estimateTxDependencies) {
-  //   await provider.estimateTxDependencies(transactionRequest);
-  // }
-  // #endregion Provider-sendTransaction
-
-  const { consensusParameters } = provider.getChain();
-
-  provider.validateTransaction(transactionRequest);
-
-  const encodedTransaction = hexlify(transactionRequest.toTransactionBytes());
-
-  let abis: JsonAbisFromAllCalls | undefined;
-
-  if (isTransactionTypeScript(transactionRequest)) {
-    abis = transactionRequest.abis;
-  }
-
-  console.log('transactionRequest:', transactionRequest.toTransaction());
-  const {
-    submit: { id: transactionId },
-  } = await provider.operations.submit({ encodedTransaction });
-
-  // provider.#cacheInputs(transactionRequest.inputs, transactionId);
-
-  return new TransactionResponse(transactionRequest, provider, abis);
-};
 
 // const stringFromBuffer = (
 //     buffer: Uint8Array,
