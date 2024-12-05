@@ -18,7 +18,12 @@ import {
 } from 'fuels';
 import accounts from '../accounts.json';
 import cors from 'cors';
-import type { AllocateCoinResponse, TypedResponse } from './types';
+import type {
+  AllocateCoinResponse,
+  SignRequest,
+  TypedRequest,
+  TypedResponse,
+} from './types';
 
 config();
 
@@ -65,77 +70,83 @@ const main = async () => {
     res.status(200).json({ status: 'healthy' });
   });
 
-  app.post('/allocate-coin', async (req, res: AllocateCoinResponse) => {
-    // TODO: Implement coin retrieval logic
+  app.post(
+    '/allocate-coin',
+    async (_req: TypedRequest<{}>, res: AllocateCoinResponse) => {
+      // TODO: Implement coin retrieval logic
 
-    let coin: Coin | null = null;
-    let address: string | null = null;
+      let coin: Coin | null = null;
+      let address: string | null = null;
 
-    while (!coin) {
-      address = await supabaseDB.getNextAccount();
+      while (!coin) {
+        address = await supabaseDB.getNextAccount();
+        if (!address) {
+          return res.status(404).json({ error: 'No unlocked account found' });
+        }
+
+        const result = await fuelClient.getCoin(
+          address,
+          env.MINIMUM_COIN_AMOUNT
+        );
+        if (!result) {
+          await supabaseDB.setAccountNeedsFunding(address, true);
+          continue;
+        }
+
+        coin = result;
+      }
+
       if (!address) {
-        return res.status(404).json({ error: 'No unlocked account found' });
+        return res
+          .status(404)
+          .json({ error: 'No unlocked account found after multiple attempts' });
+      }
+      if (!coin) {
+        return res
+          .status(404)
+          .json({ error: 'No unlocked coin found after multiple attempts' });
       }
 
-      const result = await fuelClient.getCoin(address, env.MINIMUM_COIN_AMOUNT);
-      if (!result) {
-        await supabaseDB.setAccountNeedsFunding(address, true);
-        continue;
+      // Lock the account for 30 seconds
+      const lockError = await supabaseDB.lockAccount(
+        address,
+        new Date(Date.now() + 1000 * 30)
+      );
+
+      if (lockError) {
+        console.error(lockError);
+        return res.status(500).json({ error: 'Failed to lock account' });
       }
 
-      coin = result;
+      const { error: insertError, jobId } =
+        await supabaseDB.insertNewJob(address);
+      if (insertError) {
+        console.error(insertError);
+        return res.status(500).json({ error: 'Failed to insert job' });
+      }
+
+      console.log('jobId', jobId);
+      console.log('sent coin:', coin);
+
+      const {
+        success,
+        data: response,
+        error,
+      } = AllocateCoinResponseSchema.safeParse({
+        coin: normalizeJSON(coin),
+        jobId,
+      });
+
+      if (!success) {
+        console.error(error);
+        return res.status(500).json({ error: 'Failed to allocate coin' });
+      }
+
+      res.status(200).send(response);
     }
+  );
 
-    if (!address) {
-      return res
-        .status(404)
-        .json({ error: 'No unlocked account found after multiple attempts' });
-    }
-    if (!coin) {
-      return res
-        .status(404)
-        .json({ error: 'No unlocked coin found after multiple attempts' });
-    }
-
-    // Lock the account for 30 seconds
-    const lockError = await supabaseDB.lockAccount(
-      address,
-      new Date(Date.now() + 1000 * 30)
-    );
-
-    if (lockError) {
-      console.error(lockError);
-      return res.status(500).json({ error: 'Failed to lock account' });
-    }
-
-    const { error: insertError, jobId } =
-      await supabaseDB.insertNewJob(address);
-    if (insertError) {
-      console.error(insertError);
-      return res.status(500).json({ error: 'Failed to insert job' });
-    }
-
-    console.log('jobId', jobId);
-    console.log('sent coin:', coin);
-
-    const {
-      success,
-      data: response,
-      error,
-    } = AllocateCoinResponseSchema.safeParse({
-      coin: normalizeJSON(coin),
-      jobId,
-    });
-
-    if (!success) {
-      console.error(error);
-      return res.status(500).json({ error: 'Failed to allocate coin' });
-    }
-
-    res.status(200).send(response);
-  });
-
-  app.post('/sign', async (req, res) => {
+  app.post('/sign', async (req: SignRequest, res: SignResponse) => {
     const { success, error, data } = ScriptRequestSignSchema.safeParse(
       req.body
     );
