@@ -8,11 +8,14 @@ import {
   createAssetId,
   hexlify,
   InputType,
+  isTransactionTypeScript,
   OutputType,
   Provider,
   ScriptTransactionRequest,
   stringFromBuffer,
   TransactionCoder,
+  transactionRequestify,
+  TransactionResponse,
   TransactionType,
   uint64ToBytesBE,
   UtxoIdCoder,
@@ -20,7 +23,10 @@ import {
   ZeroBytes32,
   type Coin,
   type Encoding,
+  type JsonAbisFromAllCalls,
+  type ProviderSendTxParams,
   type TransactionRequest,
+  type TransactionRequestLike,
 } from 'fuels';
 import { envSchema } from '../../src/lib/schema/config';
 import { contractId, fuelAccount, assetId } from '../depolyments.json';
@@ -39,9 +45,15 @@ const main = async () => {
   const request = new ScriptTransactionRequest();
 
   // TODO: use zod type for the response
-  const { maxValuePerCoin } = await axios.get<{ maxValuePerCoin: string }>(
-    'http://localhost:3000/metadata'
-  );
+  const { data: MetaDataResponse } = await axios.get<{
+    maxValuePerCoin: string;
+  }>('http://localhost:3000/metadata');
+
+  const { maxValuePerCoin } = MetaDataResponse;
+
+  if (!maxValuePerCoin) {
+    throw new Error('No maxValuePerCoin found');
+  }
 
   // TODO: use zod to validate the response
   const { data } = await axios.post<{ utxoId: string }>(
@@ -83,7 +95,7 @@ const main = async () => {
 
   console.log('coins', coins[0]);
 
-  request.addContractInputAndOutput(Address.fromAddressOrString(contractId));
+  // request.addContractInputAndOutput(Address.fromAddressOrString(contractId));
   request.addCoinInput(coins[0]);
 
   // NOTE: addCoinInput automatically adds a change output for that particular asset's coin to the same address
@@ -150,8 +162,6 @@ const main = async () => {
     throw new Error('No signature found');
   }
 
-  return;
-
   request.witnesses[1] = response.data.signature;
 
   console.log(
@@ -159,8 +169,10 @@ const main = async () => {
     await provider.getBalance(randomReciever.address, assetId.bits)
   );
 
+  console.log('request:', request.toJSON());
+
   const txResult = await (
-    await provider.sendTransaction(request)
+    await sendTransaction(provider, request)
   ).waitForResult();
 
   console.log('tx status:', txResult.status);
@@ -259,6 +271,38 @@ export function getTransactionIdPayload(
 
   return concatenatedData;
 }
+
+const sendTransaction = async (
+  provider: Provider,
+  transactionRequestLike: TransactionRequestLike
+): Promise<TransactionResponse> => {
+  const transactionRequest = transactionRequestify(transactionRequestLike);
+  // if (estimateTxDependencies) {
+  //   await provider.estimateTxDependencies(transactionRequest);
+  // }
+  // #endregion Provider-sendTransaction
+
+  const { consensusParameters } = provider.getChain();
+
+  provider.validateTransaction(transactionRequest);
+
+  const encodedTransaction = hexlify(transactionRequest.toTransactionBytes());
+
+  let abis: JsonAbisFromAllCalls | undefined;
+
+  if (isTransactionTypeScript(transactionRequest)) {
+    abis = transactionRequest.abis;
+  }
+
+  console.log('transactionRequest:', transactionRequest.toTransaction());
+  const {
+    submit: { id: transactionId },
+  } = await provider.operations.submit({ encodedTransaction });
+
+  // provider.#cacheInputs(transactionRequest.inputs, transactionId);
+
+  return new TransactionResponse(transactionRequest, provider, abis);
+};
 
 // const stringFromBuffer = (
 //     buffer: Uint8Array,

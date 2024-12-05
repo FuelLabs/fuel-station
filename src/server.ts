@@ -29,7 +29,7 @@ config();
 
 // 10000 in Fuel units
 // TODO: move this to .env
-const MAX_VALUE_PER_COIN = '0x2710';
+const MAX_VALUE_PER_COIN = '0x186A0';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
