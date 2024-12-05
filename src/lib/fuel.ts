@@ -1,14 +1,11 @@
 import {
   hexlify,
   OutputType,
-  sleep,
+  Provider,
   UtxoIdCoder,
   type BN,
   type Coin,
-  type Provider,
-  type Resource,
   type WalletUnlocked,
-  FuelError,
 } from 'fuels';
 
 export class FuelClient {
@@ -36,6 +33,14 @@ export class FuelClient {
     this.minimumCoinValue = param.minimumCoinValue;
 
     this.baseAssetId = this.provider.getBaseAssetId();
+  }
+
+  async getProvider(): Promise<Provider> {
+    return Provider.create(this.provider.url);
+  }
+
+  getBaseAssetId(): string {
+    return this.baseAssetId;
   }
 
   // This function will always return a single coin if a coin with a value greater than or equal to the value provided in argument is found
@@ -67,6 +72,18 @@ export class FuelClient {
     }
 
     return null;
+  }
+
+  async getSmallCoins(
+    walletAddress: string,
+    coinSmallerThan: number
+  ): Promise<Coin[]> {
+    const { coins } = await this.provider.getCoins(
+      walletAddress,
+      this.baseAssetId
+    );
+
+    return coins.filter((coin) => coin.amount.lt(coinSmallerThan));
   }
 
   // TODO: We need to remove this
