@@ -1,4 +1,4 @@
-import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
+import { PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
 import type { BN } from 'fuels';
 
@@ -29,6 +29,29 @@ export class SupabaseDB {
     }
 
     return data.map((account) => account.address);
+  }
+
+  async isAccountLockExpired(
+    address: string
+  ): Promise<{ error: PostgrestError | Error | null; expired: boolean }> {
+    const { data, error } = await this.supabaseClient
+      .from('accounts')
+      .select('expiry')
+      .eq('address', address);
+
+    if (error) {
+      return { error, expired: false };
+    }
+
+    if (!data[0]) {
+      return { error: new Error('Account not found'), expired: false };
+    }
+
+    if (!data[0].expiry) {
+      return { error: new Error('Account expiry not found'), expired: false };
+    }
+
+    return { error: null, expired: new Date(data[0].expiry) < new Date() };
   }
 
   async insertAccounts(addresses: string[]): Promise<void> {
@@ -176,7 +199,8 @@ export class SupabaseDB {
   }
 
   async insertNewJob(
-    address: string
+    address: string,
+    expiry: Date
   ): Promise<{ error: PostgrestError | null; jobId: string }> {
     const jobId = crypto.randomUUID();
 
@@ -184,6 +208,7 @@ export class SupabaseDB {
       job_id: jobId,
       address,
       job_status: 'pending',
+      expiry: expiry.toISOString(),
     });
 
     return { error, jobId };

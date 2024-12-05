@@ -63,16 +63,19 @@ export type Database = {
       jobs: {
         Row: {
           address: string;
+          expiry: string;
           job_id: string;
           job_status: string;
         };
         Insert: {
           address?: string;
+          expiry: string;
           job_id: string;
           job_status?: string;
         };
         Update: {
           address?: string;
+          expiry?: string;
           job_id?: string;
           job_status?: string;
         };

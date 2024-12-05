@@ -107,19 +107,21 @@ const main = async () => {
           .json({ error: 'No unlocked coin found after multiple attempts' });
       }
 
+      // Lock the account & the job for 30 seconds
+      const lockTimeStamp = new Date(Date.now() + 1000 * 30);
+
       // Lock the account for 30 seconds
-      const lockError = await supabaseDB.lockAccount(
-        address,
-        new Date(Date.now() + 1000 * 30)
-      );
+      const lockError = await supabaseDB.lockAccount(address, lockTimeStamp);
 
       if (lockError) {
         console.error(lockError);
         return res.status(500).json({ error: 'Failed to lock account' });
       }
 
-      const { error: insertError, jobId } =
-        await supabaseDB.insertNewJob(address);
+      const { error: insertError, jobId } = await supabaseDB.insertNewJob(
+        address,
+        lockTimeStamp
+      );
       if (insertError) {
         console.error(insertError);
         return res.status(500).json({ error: 'Failed to insert job' });
@@ -162,6 +164,7 @@ const main = async () => {
 
     const jobId = data.jobId;
     console.log('jobId', jobId);
+
     const { error: getError, job } = await supabaseDB.getJob(jobId);
     if (getError) {
       console.error(getError);
