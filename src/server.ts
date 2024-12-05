@@ -27,6 +27,10 @@ import type {
 
 config();
 
+// 10000 in Fuel units
+// TODO: move this to .env
+const MAX_VALUE_PER_COIN = '0x2710';
+
 const main = async () => {
   const env = envSchema.parse(process.env);
 
@@ -181,6 +185,7 @@ const main = async () => {
       return res.status(404).json({ error: 'Account data not found' });
     }
 
+    console.log('job', job);
     // This is to sanity check that the account has not been unlocked by another request and we don't accidentally unlock it
     if (accountData.expiry !== job.expiry) {
       return res.status(400).json({ error: 'Job expired' });
@@ -246,17 +251,20 @@ const main = async () => {
       });
     }
 
-    if (outputCoinsBelongingToAccount.length > 1) {
+    const outputCoin = outputCoinsBelongingToAccount.find(
+      (output) => output.type === 0
+    );
+    if (!outputCoin) {
       return res.status(400).json({
-        error:
-          'More than 1 output coin belonging to account in the script transaction',
+        error: 'No output coin belonging to account in the script transaction',
       });
     }
 
-    const outputCoin = outputCoinsBelongingToAccount[0];
-    if (outputCoin.type === 2) {
+    if (
+      bn(outputCoin.amount).lt(bn(inputCoin.amount).sub(MAX_VALUE_PER_COIN))
+    ) {
       return res.status(400).json({
-        error: 'Output coin is a change output',
+        error: 'Output coin amount is too low',
       });
     }
 
@@ -286,24 +294,23 @@ const main = async () => {
     // TODO: Ideally the paymaster needs to search the witness index for providing its signature
     request.witnesses[witnessIndex] = await wallet.signTransaction(request);
 
-    const { gasLimit, gasPrice, maxGas, maxFee } =
-      await wallet.provider.estimateTxGasAndFee({
-        transactionRequest: request,
-      });
-
-    // we add some padding, we need to adjust this
-    const maxTotalFee = maxGas.mul(gasPrice).add(maxFee).add(200);
-
-    const isOutputCoinAmountValid = bn(outputCoin.amount).gte(
-      bn(inputCoin.amount).sub(maxTotalFee)
-    );
-
-    if (!isOutputCoinAmountValid) {
-      return res.status(400).json({ error: 'Output coin amount is too low' });
-    }
-
     res.status(200).json({ signature: await wallet.signTransaction(request) });
   });
+
+  // returns the maximum value that can be used per coin in a request
+  // TODO: use zod for the response type and do a safe parse
+  app.get(
+    '/metadata',
+    (
+      _req: TypedRequest<void>,
+      res: TypedResponse<{
+        maxValuePerCoin: `0x${string}`;
+      }>
+    ) => {
+      // 10000 in Fuel units
+      res.status(200).json({ maxValuePerCoin: MAX_VALUE_PER_COIN });
+    }
+  );
 
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

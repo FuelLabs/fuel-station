@@ -12,7 +12,8 @@
     "mint-example": "bun run example/scripts/mint_stablecoin.ts",
     "balance-example": "bun run example/scripts/balance.ts",
     "send-example": "bun run example/src/index.ts",
-    "init-accounts": "bun scripts/init_accounts.ts"
+    "init-accounts": "bun scripts/init_accounts.ts",
+    "unlock-accounts": "bun scripts/unlock_all_accounts.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

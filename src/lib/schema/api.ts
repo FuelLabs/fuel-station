@@ -24,7 +24,7 @@ const InputsSchema = InputCoinSchema.or(InputContractSchema);
 const OutputCoinSchema = z.object({
   type: z.literal(0),
   to: z.string().startsWith('0x'),
-  amount: z.number(),
+  amount: z.string().startsWith('0x').or(z.number()),
   assetId: z.string().startsWith('0x'),
 });
 

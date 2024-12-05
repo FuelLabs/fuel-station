@@ -26,20 +26,22 @@ import { envSchema } from '../../src/lib/schema/config';
 import { contractId, fuelAccount, assetId } from '../depolyments.json';
 import axios from 'axios';
 import { clone } from 'ramda';
+import accounts from '../../accounts.json';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
 
   const provider = await Provider.create(env.FUEL_PROVIDER_URL);
   const wallet = Wallet.fromPrivateKey(fuelAccount.privateKey, provider);
-  const paymasterWallet = Wallet.fromPrivateKey(
-    env.FUEL_PAYMASTER_PRIVATE_KEY,
-    provider
-  );
 
   const randomReciever = Wallet.generate();
 
   const request = new ScriptTransactionRequest();
+
+  // TODO: use zod type for the response
+  const { maxValuePerCoin } = await axios.get<{ maxValuePerCoin: string }>(
+    'http://localhost:3000/metadata'
+  );
 
   // TODO: use zod to validate the response
   const { data } = await axios.post<{ utxoId: string }>(
@@ -65,6 +67,15 @@ const main = async () => {
 
   console.log('gasCoin', gasCoin);
 
+  const account = accounts.find(
+    (account) => account.address === data.coin.owner
+  );
+  if (!account) {
+    throw new Error('Account not found');
+  }
+
+  const paymasterWallet = Wallet.fromPrivateKey(account.privateKey, provider);
+
   const { coins } = await wallet.getCoins(assetId.bits);
   if (!coins.length) {
     throw new Error('No coins found');
@@ -82,6 +93,15 @@ const main = async () => {
   request.addChangeOutput(Wallet.generate().address, assetId.bits);
 
   request.addCoinInput(gasCoin);
+
+  request.addCoinOutput(
+    paymasterWallet.address,
+    gasCoin.amount.sub(maxValuePerCoin),
+    provider.getBaseAssetId()
+  );
+
+  // if this gas is sponsored, then should go back to the sponsor
+  // if not, then should go to the user
   request.addChangeOutput(paymasterWallet.address, provider.getBaseAssetId());
 
   const result = await provider.estimateTxGasAndFee({
@@ -114,6 +134,8 @@ const main = async () => {
   console.log('a:', a);
   console.log('payload:', transactionIdPayload);
   console.log('b:', b);
+
+  console.log('request:', request.toJSON());
 
   const response = await axios.post('http://localhost:3000/sign', {
     request: request.toJSON(),
