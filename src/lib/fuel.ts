@@ -3,7 +3,6 @@ import { Provider, type BN, type Coin, type WalletUnlocked } from 'fuels';
 export class FuelClient {
   private provider: Provider;
 
-  private paymasterWallet: WalletUnlocked;
   private funderWallet: WalletUnlocked;
 
   private minimumCoinValue: number;
@@ -12,12 +11,10 @@ export class FuelClient {
 
   constructor(param: {
     provider: Provider;
-    paymasterWallet: WalletUnlocked;
     funderWallet: WalletUnlocked;
     minimumCoinValue: number;
   }) {
     this.provider = param.provider;
-    this.paymasterWallet = param.paymasterWallet;
     this.funderWallet = param.funderWallet;
     this.minimumCoinValue = param.minimumCoinValue;
 
@@ -101,19 +98,8 @@ export class FuelClient {
     return coins;
   }
 
-  async getPaymasterCoins(): Promise<Coin[]> {
-    return await this.getCoins(this.paymasterWallet);
-  }
-
   async getFunderCoins(): Promise<Coin[]> {
     return await this.getCoins(this.funderWallet);
-  }
-
-  async getPaymasterBalance(): Promise<BN> {
-    return await this.provider.getBalance(
-      this.paymasterWallet.address,
-      this.provider.getBaseAssetId()
-    );
   }
 
   async getFunderBalance(): Promise<BN> {

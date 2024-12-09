@@ -142,10 +142,6 @@ const main = async () => {
 
   const fuelClient = new FuelClient({
     provider: fuelProvider,
-    paymasterWallet: Wallet.fromPrivateKey(
-      env.FUEL_PAYMASTER_PRIVATE_KEY,
-      fuelProvider
-    ),
     funderWallet: Wallet.fromPrivateKey(
       env.FUEL_FUNDER_PRIVATE_KEY,
       fuelProvider
