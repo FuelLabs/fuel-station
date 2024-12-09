@@ -177,8 +177,8 @@ const main = async () => {
       // 5 seconds
       await sleep(5000);
     } else {
-      // 10 seconds
-      await sleep(10000);
+      // 30 seconds
+      await sleep(30000);
     }
   }
 };

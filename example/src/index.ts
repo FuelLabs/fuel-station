@@ -47,7 +47,7 @@ const main = async () => {
   // TODO: use zod type for the response
   const { data: MetaDataResponse } = await axios.get<{
     maxValuePerCoin: string;
-  }>('http://localhost:3000/metadata');
+  }>(`${env.FUEL_STATION_SERVER_URL}/metadata`);
 
   const { maxValuePerCoin } = MetaDataResponse;
 
@@ -57,7 +57,7 @@ const main = async () => {
 
   // TODO: use zod to validate the response
   const { data } = await axios.post<{ utxoId: string }>(
-    'http://localhost:3000/allocate-coin'
+    `${env.FUEL_STATION_SERVER_URL}/allocate-coin`
   );
 
   if (!data.coin) {
@@ -149,10 +149,13 @@ const main = async () => {
 
   console.log('request:', request.toJSON());
 
-  const response = await axios.post('http://localhost:3000/sign', {
-    request: request.toJSON(),
-    jobId: data.jobId,
-  });
+  const response = await axios.post(
+    `${env.FUEL_STATION_SERVER_URL}/sign`,
+    {
+      request: request.toJSON(),
+      jobId: data.jobId,
+    }
+  );
 
   if (response.status !== 200) {
     throw new Error('Failed to sign transaction');
