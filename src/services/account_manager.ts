@@ -173,8 +173,13 @@ const main = async () => {
       console.error(error);
     }
 
-    // 5 seconds
-    await sleep(5000);
+    if (env.ENV === 'local') {
+      // 5 seconds
+      await sleep(5000);
+    } else {
+      // 10 seconds
+      await sleep(10000);
+    }
   }
 };
 
