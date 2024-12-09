@@ -1,12 +1,12 @@
-# fuel-station
+<img src="./assets/logo.png" alt="fuel-station" width="100" style="border-radius: 100%;">
 
-<img src="./assets/logo.png" alt="fuel-station" width="200">
+# fuel-station
 
 fuel-station is a non-custodial gas paymaster, this repo contains a demo implementation of the mentioned prototype.
 
-<img src="./assets/image.png" alt="fuel-station" width="500">
+<img src="./assets/image.png" alt="fuel-station" width="350">
 
-Source: [Fuel Forum](https://forum.fuel.network/t/fuel-station-gas-paymaster-on-fuel/7078)
+Read the [post](https://forum.fuel.network/t/fuel-station-gas-paymaster-on-fuel/7078) on the Fuel Forum for more information.
 
 ## API Documentation
 
