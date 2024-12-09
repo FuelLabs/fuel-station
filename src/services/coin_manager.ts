@@ -56,7 +56,7 @@ const coinManagerProcess = async (
       );
 
       // 200ms
-      await sleep(200);
+      await sleep(50);
     }
   }
 
@@ -127,6 +127,23 @@ const coinManagerProcess = async (
 
     // 200ms
     await sleep(200);
+  }
+
+  const lockedAccounts = await supabaseDB.getLockedAccounts();
+
+  for (const account of lockedAccounts) {
+    const { account: accountData, error: accountError } =
+      await supabaseDB.getAccount(account);
+
+    if (accountError) {
+      console.error(accountError);
+      continue;
+    }
+
+    if (accountData.expiry && new Date(accountData.expiry) < new Date()) {
+      console.log(`Unlocking account ${account}`);
+      await supabaseDB.unlockAccount(account);
+    }
   }
 };
 

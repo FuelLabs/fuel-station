@@ -126,6 +126,19 @@ export class SupabaseDB {
     return data.map((account) => account.address);
   }
 
+  async getLockedAccounts(): Promise<string[]> {
+    const { data, error } = await this.supabaseClient
+      .from(ACCOUNT_TABLE_NAME)
+      .select('address')
+      .eq('is_locked', true);
+
+    if (error) {
+      throw error;
+    }
+
+    return data.map((account) => account.address);
+  }
+
   async setAccountNeedsFunding(
     address: string,
     needsFunding: boolean
