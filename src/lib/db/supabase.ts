@@ -1,4 +1,4 @@
-import { PostgrestError, type SupabaseClient } from '@supabase/supabase-js';
+import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
 import type { BN } from 'fuels';
 
@@ -177,54 +177,6 @@ export class SupabaseDB {
     return error ?? null;
   }
 
-  async getUnlockedCoin(): Promise<{ utxo_id: string; amount: number } | null> {
-    const { data, error } = await this.supabaseClient
-      .from('coins')
-      .select('*')
-      .eq('is_locked', false)
-      .limit(1);
-
-    if (error) {
-      throw error;
-    }
-
-    return data?.[0] ?? null;
-  }
-
-  async lockCoin(
-    utxo_id: string,
-    expiry: Date
-  ): Promise<PostgrestError | null> {
-    const { error } = await this.supabaseClient
-      .from('coins')
-      .update({ is_locked: true, expiry })
-      .eq('utxo_id', utxo_id);
-
-    return error ?? null;
-  }
-
-  async unlockCoin(utxo_id: string): Promise<PostgrestError | null> {
-    const { error } = await this.supabaseClient
-      .from('coins')
-      .update({
-        is_locked: false,
-        expiry: null,
-        txn_hash: null,
-      })
-      .eq('utxo_id', utxo_id);
-
-    return error ?? null;
-  }
-
-  async deleteCoin(utxo_id: string): Promise<PostgrestError | null> {
-    const { error } = await this.supabaseClient
-      .from('coins')
-      .delete()
-      .eq('utxo_id', utxo_id);
-
-    return error ?? null;
-  }
-
   async insertNewJob(
     address: string,
     expiry: Date
@@ -252,7 +204,11 @@ export class SupabaseDB {
       .select('*')
       .eq('job_id', jobId);
 
-    return { error, job: data?.[0] ?? null };
+    if (error) {
+      return { error, job: null };
+    }
+
+    return { error: null, job: data?.[0] ?? null };
   }
 
   async updateJobStatus(
