@@ -13,7 +13,8 @@
     "balance-example": "bun run example/scripts/balance.ts",
     "send-example": "bun run example/src/index.ts",
     "init-accounts": "bun scripts/init_accounts.ts",
-    "unlock-accounts": "bun scripts/unlock_all_accounts.ts"
+    "unlock-accounts": "bun scripts/unlock_all_accounts.ts",
+    "show-balances-of-coin-accounts": "bun scripts/show_balances_of_coin_account.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

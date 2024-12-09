@@ -1,6 +1,5 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
-import type { BN } from 'fuels';
 import type { JobStatus } from '../../types';
 import { ACCOUNT_TABLE_NAME, JOB_TABLE_NAME } from '../../constants';
 
