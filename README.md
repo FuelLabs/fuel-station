@@ -2,6 +2,8 @@
 
 fuel-station is a non-custodial gas paymaster, this repo contains a demo implementation of the mentioned prototype.
 
+![alt text](image.png)
+
 Source: [Fuel Forum](https://forum.fuel.network/t/fuel-station-gas-paymaster-on-fuel/7078)
 
 ## API Documentation
