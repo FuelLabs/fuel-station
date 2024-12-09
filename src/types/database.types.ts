@@ -188,6 +188,24 @@ export type Database = {
           like: unknown;
         }[];
       };
+      get_random_next_records_local: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          like: unknown;
+        }[];
+      };
+      get_random_next_records_mainnet: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          like: unknown;
+        }[];
+      };
+      get_random_next_records_testnet: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          like: unknown;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

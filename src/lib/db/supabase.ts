@@ -2,6 +2,9 @@ import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
 import type { JobStatus } from '../../types';
 import { ACCOUNT_TABLE_NAME, JOB_TABLE_NAME } from '../../constants';
+import { envSchema } from '../schema/config';
+
+const env = envSchema.parse(process.env);
 
 // TODO: We need to create a DB intefrace which SupabaseDB will implement
 export class SupabaseDB {
@@ -93,7 +96,7 @@ export class SupabaseDB {
     }
   }
 
-  // searches for an account, which is either not locked or has an expiry date in the past, and is not marked as needing funding
+  // searches for an account, which is not locked, and is not marked as needing funding
   // supbase functiond defined below:
   // CREATE OR REPLACE FUNCTION get_random_next_records()
   // RETURNS TABLE (LIKE accounts) AS $$
@@ -103,7 +106,11 @@ export class SupabaseDB {
   // $$ LANGUAGE sql;
   async getNextAccount(): Promise<string | null> {
     const { data, error } = await this.supabaseClient.rpc(
-      'get_random_next_records'
+      env.ENV === 'local'
+        ? 'get_random_next_records_local'
+        : env.ENV === 'testnet'
+          ? 'get_random_next_records_testnet'
+          : 'get_random_next_records_mainnet'
     );
 
     if (error) {
