@@ -7,9 +7,12 @@ const main = async () => {
   const provider = await Provider.create(env.FUEL_PROVIDER_URL);
 
   for (const account of accounts) {
-    const balance = await provider.getBalance(account.address, provider.getBaseAssetId());
+    const balance = await provider.getBalance(
+      account.address,
+      provider.getBaseAssetId()
+    );
     console.log(`${account.address}: ${balance}`);
   }
 };
 
-main()
+main();
