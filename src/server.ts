@@ -21,6 +21,7 @@ import cors from 'cors';
 import type {
   AllocateCoinResponse,
   SignRequest,
+  SignResponse,
   TypedRequest,
   TypedResponse,
 } from './types';
@@ -52,7 +53,6 @@ const main = async () => {
     provider: fuelProvider,
     paymasterWallet,
     funderWallet,
-    minimumCoinAmount: 1,
     minimumCoinValue: 1,
   });
 
@@ -309,6 +309,50 @@ const main = async () => {
     ) => {
       // 10000 in Fuel units
       res.status(200).json({ maxValuePerCoin: MAX_VALUE_PER_COIN });
+    }
+  );
+
+  app.post(
+    '/jobs/:jobId/complete',
+    async (
+      req: TypedRequest<{
+        txnHash: string;
+      }>,
+      res: TypedResponse<{ error: string } | { status: 'success' }>
+    ) => {
+      const { jobId, txnHash } = req.params;
+
+      const { error: getJobError, job } = await supabaseDB.getJob(jobId);
+      if (getJobError) {
+        console.error(getJobError);
+        return res.status(500).json({ error: 'Failed to get job' });
+      }
+
+      if (!job) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+
+      if (job.job_status === 'completed') {
+        return res.status(400).json({ error: 'Job already completed' });
+      }
+
+      const unlockAccountError = await supabaseDB.unlockAccount(job.address);
+
+      if (unlockAccountError) {
+        console.error(unlockAccountError);
+        return res.status(500).json({ error: 'Failed to unlock account' });
+      }
+
+      const updateJobError = await supabaseDB.updateJobStatus(
+        jobId,
+        'completed'
+      );
+      if (updateJobError) {
+        console.error(updateJobError);
+        return res.status(500).json({ error: 'Failed to update job status' });
+      }
+
+      return res.status(200).json({ status: 'success' });
     }
   );
 

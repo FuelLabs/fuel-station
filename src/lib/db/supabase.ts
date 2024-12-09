@@ -1,6 +1,7 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
 import type { BN } from 'fuels';
+import type { JobStatus } from '../../types';
 
 // TODO: We need to create a DB intefrace which SupabaseDB will implement
 export class SupabaseDB {
@@ -213,7 +214,7 @@ export class SupabaseDB {
 
   async updateJobStatus(
     jobId: string,
-    status: 'pending' | 'timeout' | 'completed'
+    status: JobStatus
   ): Promise<PostgrestError | null> {
     const { error } = await this.supabaseClient
       .from('jobs')

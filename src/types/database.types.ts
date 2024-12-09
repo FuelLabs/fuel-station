@@ -66,18 +66,21 @@ export type Database = {
           expiry: string;
           job_id: string;
           job_status: string;
+          txn_hash: string | null;
         };
         Insert: {
           address?: string;
           expiry: string;
           job_id: string;
           job_status?: string;
+          txn_hash?: string | null;
         };
         Update: {
           address?: string;
           expiry?: string;
           job_id?: string;
           job_status?: string;
+          txn_hash?: string | null;
         };
         Relationships: [];
       };
