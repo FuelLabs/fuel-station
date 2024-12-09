@@ -8,6 +8,7 @@ export const envSchema = z.object({
   FUEL_CHANGE_COLLECTOR_ADDRESS: z.string(),
   MINIMUM_COIN_VALUE: z.coerce.number(),
   NUM_OF_ACCOUNTS: z.coerce.number(),
+  ENV: z.enum(['local', 'testnet', 'mainnet']),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

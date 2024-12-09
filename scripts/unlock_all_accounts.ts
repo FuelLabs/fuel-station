@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from '../src/lib/schema/config';
 import type { Database } from '../src/types/database.types';
+import { ACCOUNT_TABLE_NAME } from '../src/constants';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
@@ -11,7 +12,7 @@ const main = async () => {
   );
   // unlock all accounts
   const { error } = await supabase
-    .from('accounts')
+    .from(ACCOUNT_TABLE_NAME)
     .update({ is_locked: false, expiry: null })
     .eq('is_locked', true);
 

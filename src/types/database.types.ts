@@ -33,34 +33,127 @@ export type Database = {
         };
         Relationships: [];
       };
-      coins: {
+      accounts_local: {
         Row: {
-          amount: number;
+          address: string;
           expiry: string | null;
           id: number;
           is_locked: boolean;
-          txn_hash: string | null;
-          utxo_id: string;
+          needs_funding: boolean | null;
         };
         Insert: {
-          amount: number;
+          address?: string;
           expiry?: string | null;
           id?: number;
           is_locked: boolean;
-          txn_hash?: string | null;
-          utxo_id?: string;
+          needs_funding?: boolean | null;
         };
         Update: {
-          amount?: number;
+          address?: string;
           expiry?: string | null;
           id?: number;
           is_locked?: boolean;
-          txn_hash?: string | null;
-          utxo_id?: string;
+          needs_funding?: boolean | null;
         };
         Relationships: [];
       };
-      jobs: {
+      accounts_mainnet: {
+        Row: {
+          address: string;
+          expiry: string | null;
+          id: number;
+          is_locked: boolean;
+          needs_funding: boolean | null;
+        };
+        Insert: {
+          address?: string;
+          expiry?: string | null;
+          id?: number;
+          is_locked: boolean;
+          needs_funding?: boolean | null;
+        };
+        Update: {
+          address?: string;
+          expiry?: string | null;
+          id?: number;
+          is_locked?: boolean;
+          needs_funding?: boolean | null;
+        };
+        Relationships: [];
+      };
+      accounts_testnet: {
+        Row: {
+          address: string;
+          expiry: string | null;
+          id: number;
+          is_locked: boolean;
+          needs_funding: boolean | null;
+        };
+        Insert: {
+          address?: string;
+          expiry?: string | null;
+          id?: number;
+          is_locked: boolean;
+          needs_funding?: boolean | null;
+        };
+        Update: {
+          address?: string;
+          expiry?: string | null;
+          id?: number;
+          is_locked?: boolean;
+          needs_funding?: boolean | null;
+        };
+        Relationships: [];
+      };
+      jobs_local: {
+        Row: {
+          address: string;
+          expiry: string;
+          job_id: string;
+          job_status: string;
+          txn_hash: string | null;
+        };
+        Insert: {
+          address?: string;
+          expiry: string;
+          job_id: string;
+          job_status?: string;
+          txn_hash?: string | null;
+        };
+        Update: {
+          address?: string;
+          expiry?: string;
+          job_id?: string;
+          job_status?: string;
+          txn_hash?: string | null;
+        };
+        Relationships: [];
+      };
+      jobs_mainnet: {
+        Row: {
+          address: string;
+          expiry: string;
+          job_id: string;
+          job_status: string;
+          txn_hash: string | null;
+        };
+        Insert: {
+          address?: string;
+          expiry: string;
+          job_id: string;
+          job_status?: string;
+          txn_hash?: string | null;
+        };
+        Update: {
+          address?: string;
+          expiry?: string;
+          job_id?: string;
+          job_status?: string;
+          txn_hash?: string | null;
+        };
+        Relationships: [];
+      };
+      jobs_testnet: {
         Row: {
           address: string;
           expiry: string;

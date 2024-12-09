@@ -1,24 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from '../src/lib/schema/config';
+import { ACCOUNT_TABLE_NAME, JOB_TABLE_NAME } from '../src/constants';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
 
   const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
 
-  // delete all records from the coins table
-  // all ids are positive
-  const { error } = await supabase.from('coins').delete().gt('id', -1);
-
-  if (error) {
-    console.error('Error deleting coins:', error);
-    process.exit(1);
-  }
-
-  console.log('Coins deleted successfully');
-
   const { error: accountsError } = await supabase
-    .from('accounts')
+    .from(ACCOUNT_TABLE_NAME)
     .delete()
     .gt('id', -1);
 
@@ -28,6 +18,18 @@ const main = async () => {
   }
 
   console.log('Accounts deleted successfully');
+
+  const { error: jobsError } = await supabase
+    .from(JOB_TABLE_NAME)
+    .delete()
+    .gt('id', -1);
+
+  if (jobsError) {
+    console.error('Error deleting jobs:', jobsError);
+    process.exit(1);
+  }
+
+  console.log('Jobs deleted successfully');
 };
 
 main();

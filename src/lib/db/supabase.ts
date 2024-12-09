@@ -2,6 +2,7 @@ import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
 import type { BN } from 'fuels';
 import type { JobStatus } from '../../types';
+import { ACCOUNT_TABLE_NAME, JOB_TABLE_NAME } from '../../constants';
 
 // TODO: We need to create a DB intefrace which SupabaseDB will implement
 export class SupabaseDB {
@@ -9,7 +10,7 @@ export class SupabaseDB {
 
   async getTotatAccountsCount(): Promise<number> {
     const { count, error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       .select('*', { count: 'exact', head: true });
 
     if (error) {
@@ -21,7 +22,7 @@ export class SupabaseDB {
 
   async getUnlockedAccounts(): Promise<string[]> {
     const { data, error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       .select('address')
       .eq('is_locked', false);
 
@@ -34,7 +35,7 @@ export class SupabaseDB {
 
   async unlockAccount(address: string): Promise<PostgrestError | null> {
     const { error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       .update({ is_locked: false, expiry: null })
       .eq('address', address);
 
@@ -48,7 +49,7 @@ export class SupabaseDB {
     | { error: null; account: Database['public']['Tables']['accounts']['Row'] }
   > {
     const { data, error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       .select('*')
       .eq('address', address);
 
@@ -63,7 +64,7 @@ export class SupabaseDB {
     address: string
   ): Promise<{ error: PostgrestError | Error | null; expired: boolean }> {
     const { data, error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       .select('expiry')
       .eq('address', address);
 
@@ -85,37 +86,12 @@ export class SupabaseDB {
   async insertAccounts(addresses: string[]): Promise<void> {
     const entries = addresses.map((address) => ({ address, is_locked: false }));
     const { error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       .insert(entries);
 
     if (error) {
       throw error;
     }
-  }
-
-  async getTotalCoinsCount(): Promise<number> {
-    const { count, error } = await this.supabaseClient
-      .from('coins')
-      .select('*', { count: 'exact', head: true });
-
-    if (error) {
-      throw error;
-    }
-
-    return count ?? 0;
-  }
-
-  async insertCoins(
-    coins: { utxo_id: string; amount: BN | string; is_locked: boolean }[]
-  ): Promise<PostgrestError | null> {
-    // @ts-ignore
-    const { error } = await this.supabaseClient.from('coins').insert(coins);
-
-    if (error) {
-      return error;
-    }
-
-    return null;
   }
 
   // searches for an account, which is either not locked or has an expiry date in the past, and is not marked as needing funding
@@ -140,7 +116,7 @@ export class SupabaseDB {
 
   async getAccountsThatNeedFunding(): Promise<string[]> {
     const { data, error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       .select('address')
       .eq('needs_funding', true);
 
@@ -156,7 +132,7 @@ export class SupabaseDB {
     needsFunding: boolean
   ): Promise<void> {
     const { error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       .update({ needs_funding: needsFunding })
       .eq('address', address);
 
@@ -170,7 +146,7 @@ export class SupabaseDB {
     expiry: Date
   ): Promise<PostgrestError | null> {
     const { error } = await this.supabaseClient
-      .from('accounts')
+      .from(ACCOUNT_TABLE_NAME)
       // @ts-ignore
       .update({ is_locked: true, expiry: expiry.toISOString() })
       .eq('address', address);
@@ -184,7 +160,7 @@ export class SupabaseDB {
   ): Promise<{ error: PostgrestError | null; jobId: string }> {
     const jobId = crypto.randomUUID();
 
-    const { error } = await this.supabaseClient.from('jobs').insert({
+    const { error } = await this.supabaseClient.from(JOB_TABLE_NAME).insert({
       job_id: jobId,
       address,
       job_status: 'pending',
@@ -201,7 +177,7 @@ export class SupabaseDB {
     | { error: null; job: Database['public']['Tables']['jobs']['Row'] }
   > {
     const { data, error } = await this.supabaseClient
-      .from('jobs')
+      .from(JOB_TABLE_NAME)
       .select('*')
       .eq('job_id', jobId);
 
@@ -217,7 +193,7 @@ export class SupabaseDB {
     status: JobStatus
   ): Promise<PostgrestError | null> {
     const { error } = await this.supabaseClient
-      .from('jobs')
+      .from(JOB_TABLE_NAME)
       .update({ job_status: status })
       .eq('job_id', jobId);
 
