@@ -5,9 +5,9 @@ import {
   FuelClient,
   ScriptRequestSignSchema,
   SupabaseDB,
-} from './lib';
+} from '../lib';
 import { createClient } from '@supabase/supabase-js';
-import { envSchema } from './lib/schema/config';
+import { envSchema } from '../lib/schema/config';
 import {
   bn,
   normalizeJSON,
@@ -16,7 +16,7 @@ import {
   Wallet,
   type Coin,
 } from 'fuels';
-import accounts from '../accounts.json';
+import accounts from '../../accounts.json';
 import cors from 'cors';
 import type {
   AllocateCoinResponse,
@@ -24,7 +24,7 @@ import type {
   SignResponse,
   TypedRequest,
   TypedResponse,
-} from './types';
+} from '../types';
 
 config();
 

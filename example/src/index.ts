@@ -149,13 +149,10 @@ const main = async () => {
 
   console.log('request:', request.toJSON());
 
-  const response = await axios.post(
-    `${env.FUEL_STATION_SERVER_URL}/sign`,
-    {
-      request: request.toJSON(),
-      jobId: data.jobId,
-    }
-  );
+  const response = await axios.post(`${env.FUEL_STATION_SERVER_URL}/sign`, {
+    request: request.toJSON(),
+    jobId: data.jobId,
+  });
 
   if (response.status !== 200) {
     throw new Error('Failed to sign transaction');
