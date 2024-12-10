@@ -28,6 +28,8 @@ export class FundingManager extends RoutineJob {
   }
 
   async execute(): Promise<void> {
+    this.lastRun = new Date();
+
     console.log('executing routine: ', this.name);
 
     // We first fetch all accounts which need funding

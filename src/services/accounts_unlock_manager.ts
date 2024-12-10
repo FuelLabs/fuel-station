@@ -7,29 +7,23 @@ import {
 
 export class AccountsUnlockManager extends RoutineJob {
   private supabaseDB: SupabaseDB;
-  private fuelClient: FuelClient;
-  private env: EnvConfig;
   constructor({
     supabaseDB,
-    fuelClient,
     name,
     intervalMs,
-    env,
   }: {
     supabaseDB: SupabaseDB;
-    fuelClient: FuelClient;
     name: string;
     intervalMs: number;
-    env: EnvConfig;
   }) {
     super(name, intervalMs);
 
     this.supabaseDB = supabaseDB;
-    this.fuelClient = fuelClient;
-    this.env = env;
   }
 
   async execute() {
+    this.lastRun = new Date();
+
     console.log('executing routine: ', this.name);
 
     const lockedAccounts = await this.supabaseDB.getLockedAccounts();

@@ -26,6 +26,8 @@ export class SmallCoinsManager extends RoutineJob {
   }
 
   async execute() {
+    this.lastRun = new Date();
+
     console.log('executing routine: ', this.name);
 
     for (const account of accounts) {
