@@ -1,9 +1,4 @@
-import {
-  RoutineJob,
-  type EnvConfig,
-  type FuelClient,
-  type SupabaseDB,
-} from '../lib/index';
+import { RoutineJob, type SupabaseDB } from '../lib/index';
 
 export class AccountsUnlockManager extends RoutineJob {
   private supabaseDB: SupabaseDB;
