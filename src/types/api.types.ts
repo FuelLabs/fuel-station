@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import type {
   AllocateCoinResponseSchema,
+  ScriptRequestSchema,
   ScriptRequestSignSchema,
 } from '../lib';
 import type { z } from 'zod';
@@ -17,7 +18,10 @@ export type AllocateCoinResponse = TypedResponse<
   z.infer<typeof AllocateCoinResponseSchema> | { error: string }
 >;
 
-export type SignRequest = TypedRequest<z.infer<typeof ScriptRequestSignSchema>>;
+export type ScriptRequest = z.infer<typeof ScriptRequestSchema>;
+export type ScriptRequestAPI = z.infer<typeof ScriptRequestSignSchema>;
+
+export type SignRequest = TypedRequest<ScriptRequestAPI>;
 
 export type SignResponse = TypedResponse<
   { signature: `0x${string}` } | { error: string }

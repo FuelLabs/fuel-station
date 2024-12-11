@@ -2,9 +2,13 @@ import express from 'express';
 import { config } from 'dotenv';
 import {
   AllocateCoinResponseSchema,
+  findInputCoinTypeCoin,
+  findOutputCoinTypeCoin,
   FuelClient,
   ScriptRequestSignSchema,
+  setRequestFields,
   SupabaseDB,
+  UniqueCoinsExistsForAddressValidator,
 } from '../lib';
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from '../lib/schema/config';
@@ -157,6 +161,8 @@ const main = async () => {
       return res.status(400).json({ error: 'Invalid request body' });
     }
 
+    const baseAssetId = (await fuelClient.getProvider()).getBaseAssetId();
+
     console.log('req.body', data);
 
     const scriptRequest = data.request;
@@ -180,7 +186,6 @@ const main = async () => {
       return res.status(404).json({ error: 'Account data not found' });
     }
 
-    console.log('job', job);
     // This is to sanity check that the account has not been unlocked by another request and we don't accidentally unlock it
     if (accountData.expiry !== job.expiry) {
       return res.status(400).json({ error: 'Job expired' });
@@ -202,52 +207,21 @@ const main = async () => {
       return res.status(404).json({ error: 'Account not found' });
     }
 
-    const inputCoinsBelongingToAccount = scriptRequest.inputs.filter(
-      (input) => {
-        if (input.type === 0) {
-          if (input.owner === job.address) {
-            return true;
-          }
-        }
-      }
+    const inputCoin = findInputCoinTypeCoin(
+      scriptRequest,
+      job.address,
+      baseAssetId
     );
-
-    if (!inputCoinsBelongingToAccount) {
+    if (!inputCoin) {
       return res.status(400).json({
-        error: 'No input coins belonging to account in the script transaction',
+        error: 'No input coin belonging to account in the script transaction',
       });
     }
 
-    if (inputCoinsBelongingToAccount.length > 1) {
-      return res.status(400).json({
-        error:
-          'More than 1 input coin belonging to account in the script transaction',
-      });
-    }
-
-    const inputCoin = inputCoinsBelongingToAccount[0];
-    if (inputCoin.type !== 0) {
-      return res.status(400).json({
-        error: 'Input coin is not a coin input',
-      });
-    }
-
-    const outputCoinsBelongingToAccount = scriptRequest.outputs.filter(
-      (output) => {
-        if (output.to === job.address) {
-          return true;
-        }
-      }
-    );
-
-    if (!outputCoinsBelongingToAccount) {
-      return res.status(400).json({
-        error: 'No output coins belonging to account in the script transaction',
-      });
-    }
-
-    const outputCoin = outputCoinsBelongingToAccount.find(
-      (output) => output.type === 0
+    const outputCoin = findOutputCoinTypeCoin(
+      scriptRequest,
+      job.address,
+      baseAssetId
     );
     if (!outputCoin) {
       return res.status(400).json({
@@ -267,29 +241,11 @@ const main = async () => {
 
     const request = new ScriptTransactionRequest();
 
-    request.type = scriptRequest.type;
+    setRequestFields(request, scriptRequest);
 
-    // TODO: do explicit type conversion to remove the ts-ignore
-    // we are ts-ignoring, because even with different types, it still works
-    // @ts-ignore
-    request.gasLimit = scriptRequest.gasLimit;
-    // @ts-ignore
-    request.script = scriptRequest.script;
-    // @ts-ignore
-    request.scriptData = scriptRequest.scriptData;
-    // @ts-ignore
-    request.maxFee = scriptRequest.maxFee;
+    const signature = (await wallet.signTransaction(request)) as `0x${string}`;
 
-    request.inputs = scriptRequest.inputs;
-    request.outputs = scriptRequest.outputs;
-
-    request.witnesses = scriptRequest.witnesses;
-
-    const witnessIndex = inputCoin.witnessIndex;
-    // TODO: Ideally the paymaster needs to search the witness index for providing its signature
-    request.witnesses[witnessIndex] = await wallet.signTransaction(request);
-
-    res.status(200).json({ signature: await wallet.signTransaction(request) });
+    res.status(200).json({ signature });
   });
 
   // returns the maximum value that can be used per coin in a request
