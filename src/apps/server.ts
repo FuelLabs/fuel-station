@@ -8,7 +8,6 @@ import {
   ScriptRequestSignSchema,
   setRequestFields,
   SupabaseDB,
-  UniqueCoinsExistsForAddressValidator,
 } from '../lib';
 import { createClient } from '@supabase/supabase-js';
 import { envSchema } from '../lib/schema/config';
@@ -29,6 +28,7 @@ import type {
   TypedRequest,
   TypedResponse,
 } from '../types';
+import { rateLimit } from 'express-rate-limit';
 
 config();
 
@@ -36,16 +36,41 @@ config();
 // TODO: move this to .env
 const MAX_VALUE_PER_COIN = '0x186A0';
 
-const main = async () => {
-  const env = envSchema.parse(process.env);
+const API_RATE_LIMIT_PER_MINUTE = 100;
+const ALLOCATE_COIN_RATE_LIMIT_PER_HOUR = 5;
 
+const ENV = envSchema.parse(process.env);
+
+const apiRateLimit = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max:
+    ENV.ENV === 'local' || ENV.ENV === 'testnet'
+      ? 1000
+      : API_RATE_LIMIT_PER_MINUTE,
+  message: 'Too many requests from this IP, please try again after 1 minute',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const allocateCoinRateLimit = rateLimit({
+  windowMs: 1 * 60 * 60 * 1000, // 1 hour
+  max:
+    ENV.ENV === 'local' || ENV.ENV === 'testnet'
+      ? 1000
+      : ALLOCATE_COIN_RATE_LIMIT_PER_HOUR,
+  message: 'Too many requests from this IP, please try again after 1 hour',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const main = async () => {
   const supabaseDB = new SupabaseDB(
-    createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY)
+    createClient(ENV.SUPABASE_URL, ENV.SUPABASE_ANON_KEY)
   );
 
-  const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
+  const fuelProvider = await Provider.create(ENV.FUEL_PROVIDER_URL);
   const funderWallet = Wallet.fromPrivateKey(
-    env.FUEL_FUNDER_PRIVATE_KEY,
+    ENV.FUEL_FUNDER_PRIVATE_KEY,
     fuelProvider
   );
 
@@ -68,6 +93,7 @@ const main = async () => {
   );
 
   app.use(express.json());
+  app.use(apiRateLimit);
 
   app.get('/health', (_req, res) => {
     res.status(200).json({ status: 'healthy' });
@@ -75,6 +101,7 @@ const main = async () => {
 
   app.post(
     '/allocate-coin',
+    allocateCoinRateLimit,
     async (_req: TypedRequest<{}>, res: AllocateCoinResponse) => {
       // TODO: Implement coin retrieval logic
 
@@ -89,7 +116,7 @@ const main = async () => {
 
         const result = await fuelClient.getCoin(
           address,
-          env.MINIMUM_COIN_VALUE
+          ENV.MINIMUM_COIN_VALUE
         );
         if (!result) {
           await supabaseDB.setAccountNeedsFunding(address, true);
