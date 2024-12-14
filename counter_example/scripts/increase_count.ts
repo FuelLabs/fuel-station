@@ -9,7 +9,6 @@ const main = async () => {
   const env = envSchema.parse(process.env);
 
   const provider = await Provider.create(env.FUEL_PROVIDER_URL);
-  const wallet = Wallet.fromPrivateKey(env.FUEL_FUNDER_PRIVATE_KEY, provider);
 
   const contract = new Contract(contractId, Contracts.abi, provider);
 
@@ -74,14 +73,12 @@ const main = async () => {
   // if not, then should go to the user
   request.addChangeOutput(paymasterWallet.address, provider.getBaseAssetId());
 
-  const { gasLimit, gasPrice, maxGas, maxFee } =
-    await provider.estimateTxGasAndFee({ transactionRequest: request });
+  const { gasLimit, maxFee } = await provider.estimateTxGasAndFee({
+    transactionRequest: request,
+  });
 
   request.gasLimit = gasLimit;
   request.maxFee = maxFee;
-
-  console.log(request.gasLimit);
-  console.log(request.maxFee);
 
   const response = await axios.post(`${env.FUEL_STATION_SERVER_URL}/sign`, {
     request: request.toJSON(),
@@ -96,6 +93,8 @@ const main = async () => {
     throw new Error('No signature found');
   }
 
+  // we find the gas input by type 0
+  // we find it to get the witness index where to inject the signature
   const gasInput = request.inputs.find((coin) => {
     return coin.type === 0;
   });
@@ -105,8 +104,6 @@ const main = async () => {
   }
 
   request.witnesses[gasInput.witnessIndex] = response.data.signature;
-
-  console.log(request.witnesses);
 
   await provider.sendTransaction(request);
 
