@@ -14,7 +14,10 @@
     "send-example": "bun run example/src/index.ts",
     "init-accounts": "bun scripts/init_accounts.ts",
     "unlock-accounts": "bun scripts/unlock_all_accounts.ts",
-    "show-balances-of-coin-accounts": "bun scripts/show_balances_of_coin_account.ts"
+    "show-balances-of-coin-accounts": "bun scripts/show_balances_of_coin_account.ts",
+    "deploy-counter": "bun run counter_example/scripts/deploy_counter.ts",
+    "increase-count": "bun run counter_example/scripts/increase_count.ts",
+    "get-count": "bun run counter_example/scripts/get_count.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
