@@ -28,6 +28,11 @@ export const OutputCoinSchema = z.object({
   assetId: z.string().startsWith('0x'),
 });
 
+export const OutputContractSchema = z.object({
+  type: z.literal(1),
+  inputIndex: z.number(),
+});
+
 export const OutputChangeSchema = z.object({
   type: z.literal(2),
   to: z.string().startsWith('0x'),
@@ -35,7 +40,8 @@ export const OutputChangeSchema = z.object({
 });
 
 // currently only supports coin and change outputs, but we may want to add more in the future
-export const OutputsSchema = OutputCoinSchema.or(OutputChangeSchema);
+export const OutputsSchema =
+  OutputCoinSchema.or(OutputContractSchema).or(OutputChangeSchema);
 
 export const ScriptRequestSchema = z.object({
   maxFee: z.string().startsWith('0x'),

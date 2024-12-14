@@ -179,6 +179,8 @@ const main = async () => {
   );
 
   app.post('/sign', async (req: SignRequest, res: SignResponse) => {
+    console.log('req.body', req.body);
+
     const { success, error, data } = ScriptRequestSignSchema.safeParse(
       req.body
     );

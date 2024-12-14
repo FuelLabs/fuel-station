@@ -1,7 +1,9 @@
-import { Provider, Contract, Wallet } from 'fuels';
+import { Provider, Contract, Wallet, Address, bn } from 'fuels';
 import { envSchema } from '../../src/lib';
 import { contractId } from '../deployments.json';
 import { Contracts } from '../out/index';
+import axios from 'axios';
+import accounts from '../../accounts.json';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
@@ -16,6 +18,62 @@ const main = async () => {
   console.log(request.inputs);
   console.log(request.outputs);
 
+  // TODO: use zod type for the response
+  const { data: MetaDataResponse } = await axios.get<{
+    maxValuePerCoin: string;
+  }>(`${env.FUEL_STATION_SERVER_URL}/metadata`);
+
+  const { maxValuePerCoin } = MetaDataResponse;
+
+  if (!maxValuePerCoin) {
+    throw new Error('No maxValuePerCoin found');
+  }
+
+  // TODO: use zod to validate the response
+  const { data } = await axios.post<{ utxoId: string }>(
+    `${env.FUEL_STATION_SERVER_URL}/allocate-coin`
+  );
+
+  if (!data.coin) {
+    throw new Error('No coin found');
+  }
+
+  if (!data.jobId) {
+    throw new Error('No jobId found');
+  }
+
+  const gasCoin: Coin = {
+    id: data.coin.id,
+    amount: bn(data.coin.amount),
+    assetId: data.coin.assetId,
+    owner: Address.fromAddressOrString(data.coin.owner),
+    blockCreated: bn(data.coin.blockCreated),
+    txCreatedIdx: bn(data.coin.txCreatedIdx),
+  };
+
+  console.log(gasCoin);
+
+  const account = accounts.find(
+    (account) => account.address === data.coin.owner
+  );
+  if (!account) {
+    throw new Error('Account not found');
+  }
+
+  const paymasterWallet = Wallet.fromPrivateKey(account.privateKey, provider);
+
+  request.addCoinInput(gasCoin);
+
+  request.addCoinOutput(
+    paymasterWallet.address,
+    gasCoin.amount.sub(maxValuePerCoin),
+    provider.getBaseAssetId()
+  );
+
+  // if this gas is sponsored, then should go back to the sponsor
+  // if not, then should go to the user
+  request.addChangeOutput(paymasterWallet.address, provider.getBaseAssetId());
+
   const { gasLimit, gasPrice, maxGas, maxFee } =
     await provider.estimateTxGasAndFee({ transactionRequest: request });
 
@@ -25,14 +83,18 @@ const main = async () => {
   console.log(request.gasLimit);
   console.log(request.maxFee);
 
-  const { coins } = await wallet.getCoins();
-  if (coins.length === 0) {
-    throw new Error('No coins found in wallet');
+  const response = await axios.post(`${env.FUEL_STATION_SERVER_URL}/sign`, {
+    request: request.toJSON(),
+    jobId: data.jobId,
+  });
+
+  if (response.status !== 200) {
+    throw new Error('Failed to sign transaction');
   }
 
-  const gasCoin = coins[0];
-
-  request.addCoinInput(gasCoin);
+  if (!response.data.signature) {
+    throw new Error('No signature found');
+  }
 
   const gasInput = request.inputs.find((coin) => {
     return coin.type === 0;
@@ -42,8 +104,7 @@ const main = async () => {
     throw new Error('Gas coin not found');
   }
 
-  const signature = await wallet.signTransaction(request);
-  request.witnesses[gasInput.witnessIndex] = signature;
+  request.witnesses[gasInput.witnessIndex] = response.data.signature;
 
   console.log(request.witnesses);
 
