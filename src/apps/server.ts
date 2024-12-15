@@ -339,4 +339,8 @@ const main = async () => {
   });
 };
 
-main();
+try { 
+  main();
+} catch (error) {
+  console.error(error);
+}
