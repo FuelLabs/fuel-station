@@ -339,7 +339,7 @@ const main = async () => {
   });
 };
 
-try { 
+try {
   main();
 } catch (error) {
   console.error(error);

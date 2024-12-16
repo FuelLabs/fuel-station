@@ -51,7 +51,7 @@ export const findInputCoinTypeCoin = (
     return null;
   }
 
-  if (inputCoinsBelongingToAccount.length > 1) {
+  if (inputCoinsBelongingToAccount.length !== 1) {
     return null;
   }
 
