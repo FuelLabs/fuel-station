@@ -41,7 +41,7 @@ export const findInputCoinTypeCoin = (
 ): z.infer<typeof InputCoinSchema> | null => {
   const inputCoinsBelongingToAccount = scriptRequest.inputs.filter((input) => {
     if (input.type === 0) {
-      if (input.owner === owner) {
+      if (input.owner === owner && input.assetId === assetId) {
         return true;
       }
     }
