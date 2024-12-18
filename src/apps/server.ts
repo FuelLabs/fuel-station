@@ -308,7 +308,11 @@ const main = async () => {
       // 10000 in Fuel units
       res.status(200).json({
         maxValuePerCoin: MAX_VALUE_PER_COIN,
-        allocateCoinRateLimit: allocateCoinRateLimitStore.get(req.ip),
+        allocateCoinRateLimit: allocateCoinRateLimitStore.get(req.ip)
+          ? allocateCoinRateLimitStore.get(req.ip)
+          : {
+              totalHits: 0,
+            },
       });
     }
   );
