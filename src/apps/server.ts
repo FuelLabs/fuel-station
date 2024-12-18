@@ -119,9 +119,24 @@ const main = async () => {
     '/allocate-coin',
     allocateCoinRateLimit,
     async (req: TypedRequest<{}>, res: AllocateCoinResponse) => {
-      const v = await allocateCoinRateLimit.getKey(req.ip);
-      allocateCoinRateLimitStore.set(req.ip, v);
+      if (req.ip) {
+        const rateLimitInfo = await allocateCoinRateLimit.getKey(req.ip);
+        if (rateLimitInfo) {
+          allocateCoinRateLimitStore.set(req.ip, rateLimitInfo);
 
+          const resetTime = rateLimitInfo.resetTime;
+          if (resetTime) {
+            setTimeout(
+              () => {
+                allocateCoinRateLimitStore.clear();
+              },
+              Number(resetTime) - Date.now()
+            );
+          }
+        }
+      }
+
+      // TODO: Implement coin retrieval logic
       // TODO: Implement coin retrieval logic
 
       let coin: Coin | null = null;
