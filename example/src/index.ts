@@ -114,7 +114,22 @@ const main = async () => {
 
   // if this gas is sponsored, then should go back to the sponsor
   // if not, then should go to the user
-  request.addChangeOutput(paymasterWallet.address, provider.getBaseAssetId());
+  request.addChangeOutput(
+    Address.fromAddressOrString(env.FUEL_CHANGE_COLLECTOR_ADDRESS),
+    provider.getBaseAssetId()
+  );
+
+  request.outputs = request.outputs.map((output) => {
+    if (
+      output.type === 2 &&
+      output.assetId === provider.getBaseAssetId().toLowerCase()
+    ) {
+      return { ...output, to: env.FUEL_CHANGE_COLLECTOR_ADDRESS.toLowerCase() };
+    }
+    return output;
+  });
+
+  console.log('outputs:', request.outputs);
 
   const result = await provider.estimateTxGasAndFee({
     transactionRequest: request,

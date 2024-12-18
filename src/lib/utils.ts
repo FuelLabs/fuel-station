@@ -45,10 +45,15 @@ export const findOutputCoinTypeChange = (
 ): z.infer<typeof OutputChangeSchema> | null => {
   const outputChangesBelongingToAccount = scriptRequest.outputs.filter(
     (output) => {
-      if (output.type === 2 && output.to === owner) {
+      if (output.type === 2 && output.to === owner.toLowerCase()) {
         return true;
       }
     }
+  );
+
+  console.log(
+    'outputChangesBelongingToAccount:',
+    outputChangesBelongingToAccount
   );
 
   if (!outputChangesBelongingToAccount) {
