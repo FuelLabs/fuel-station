@@ -29,6 +29,8 @@ import type {
   TypedResponse,
 } from '../types';
 import { rateLimit } from 'express-rate-limit';
+import { readFileSync } from 'node:fs';
+import https from 'node:https';
 
 config();
 
@@ -82,6 +84,16 @@ const main = async () => {
 
   const app = express();
   const port = process.env.PORT || 3000;
+
+  const isHttps = ENV.SSL_KEY_PATH && ENV.SSL_CERT_PATH;
+  console.log('isHttps', isHttps);
+
+  const options = isHttps
+    ? {
+        key: readFileSync(ENV.SSL_KEY_PATH),
+        cert: readFileSync(ENV.SSL_CERT_PATH),
+      }
+    : {};
 
   // Basic CORS setup
   app.use(
@@ -334,9 +346,15 @@ const main = async () => {
     }
   );
 
-  app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
+  if (isHttps) {
+    https.createServer(options, app).listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  } else {
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  }
 };
 
 try {
