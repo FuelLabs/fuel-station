@@ -1,6 +1,10 @@
 import type { z } from 'zod';
 import type { ScriptRequest } from '../types';
-import type { InputCoinSchema, OutputCoinSchema } from '../lib/schema/api';
+import type {
+  InputCoinSchema,
+  OutputChangeSchema,
+  OutputCoinSchema,
+} from '../lib/schema/api';
 import type { ScriptTransactionRequest } from 'fuels';
 
 export const findOutputCoinTypeCoin = (
@@ -32,6 +36,38 @@ export const findOutputCoinTypeCoin = (
   }
 
   return outputCoin;
+};
+
+export const findOutputCoinTypeChange = (
+  scriptRequest: ScriptRequest,
+  owner: string,
+  assetId: string
+): z.infer<typeof OutputChangeSchema> | null => {
+  const outputChangesBelongingToAccount = scriptRequest.outputs.filter(
+    (output) => {
+      if (output.type === 2 && output.to === owner) {
+        return true;
+      }
+    }
+  );
+
+  if (!outputChangesBelongingToAccount) {
+    return null;
+  }
+
+  const outputChange = outputChangesBelongingToAccount.find(
+    (output) => output.type === 2
+  );
+
+  if (!outputChange) {
+    return null;
+  }
+
+  if (outputChange.assetId !== assetId) {
+    return null;
+  }
+
+  return outputChange;
 };
 
 export const findInputCoinTypeCoin = (

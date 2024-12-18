@@ -2,6 +2,7 @@ import express from 'express';
 import {
   AllocateCoinResponseSchema,
   findInputCoinTypeCoin,
+  findOutputCoinTypeChange,
   findOutputCoinTypeCoin,
   FuelClient,
   ScriptRequestSignSchema,
@@ -30,6 +31,7 @@ import type {
 import { rateLimit, type ClientRateLimitInfo } from 'express-rate-limit';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
+import { env } from 'bun';
 
 const allocateCoinRateLimitStore = new Map<string, ClientRateLimitInfo>();
 
@@ -285,6 +287,19 @@ const main = async () => {
     ) {
       return res.status(400).json({
         error: 'Output coin amount is too low',
+      });
+    }
+
+    const outputChange = findOutputCoinTypeChange(
+      scriptRequest,
+      ENV.FUEL_CHANGE_COLLECTOR_ADDRESS,
+      baseAssetId
+    );
+
+    if (!outputChange) {
+      return res.status(400).json({
+        error:
+          'No output change belonging to change collector in the script transaction',
       });
     }
 
