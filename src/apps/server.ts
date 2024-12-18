@@ -42,8 +42,7 @@ const ALLOCATE_COIN_RATE_LIMIT_PER_HOUR = 5;
 
 const ENV = envSchema.parse(process.env);
 
-console.log('ENV', ENV);
-process.exit(0);
+console.log('ENV', ENV.ENV);
 
 const apiRateLimit = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
