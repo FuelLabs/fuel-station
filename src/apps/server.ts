@@ -37,19 +37,13 @@ const allocateCoinRateLimitStore = new Map<string, ClientRateLimitInfo>();
 // TODO: move this to .env
 const MAX_VALUE_PER_COIN = '0x186A0';
 
-const API_RATE_LIMIT_PER_MINUTE = 100;
-const ALLOCATE_COIN_RATE_LIMIT_PER_HOUR = 5;
-
 const ENV = envSchema.parse(process.env);
 
 console.log('ENV', ENV.ENV);
 
 const apiRateLimit = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minute
-  max:
-    ENV.ENV === 'local' || ENV.ENV === 'testnet'
-      ? 1000
-      : API_RATE_LIMIT_PER_MINUTE,
+  max: ENV.API_RATE_LIMIT_PER_MINUTE,
   message: 'Too many requests from this IP, please try again after 1 minute',
   standardHeaders: true,
   legacyHeaders: false,
@@ -57,10 +51,7 @@ const apiRateLimit = rateLimit({
 
 const allocateCoinRateLimit = rateLimit({
   windowMs: 1 * 60 * 60 * 1000, // 1 hour
-  max:
-    ENV.ENV === 'local' || ENV.ENV === 'testnet'
-      ? 1000
-      : ALLOCATE_COIN_RATE_LIMIT_PER_HOUR,
+  max: ENV.ALLOCATE_COIN_RATE_LIMIT_PER_HOUR,
   message: 'Too many requests from this IP, please try again after 1 hour',
   standardHeaders: true,
   legacyHeaders: false,
