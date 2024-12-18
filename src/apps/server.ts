@@ -292,7 +292,7 @@ const main = async () => {
 
     const outputChange = findOutputCoinTypeChange(
       scriptRequest,
-      ENV.FUEL_CHANGE_COLLECTOR_ADDRESS,
+      job.address,
       baseAssetId
     );
 
