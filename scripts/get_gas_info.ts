@@ -5,6 +5,9 @@ const main = async () => {
   const ENV = envSchema.parse(process.env);
   const provider = await Provider.create(ENV.FUEL_PROVIDER_URL);
 
+  const gasPrice = await provider.getLatestGasPrice();
+  console.log('gasPrice', gasPrice);
+
   const gasConfig = provider.getGasConfig();
   console.log('gasConfig', gasConfig);
 };

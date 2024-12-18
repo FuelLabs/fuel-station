@@ -47,11 +47,11 @@ export class FundingManager extends RoutineJob {
 
         await this.fuelClient.fundAccount(
           walletAddress,
-          this.env.MINIMUM_COIN_VALUE * 10
+          this.env.FUNDING_AMOUNT
         );
 
         console.log(
-          `Funded ${walletAddress} with ${this.env.MINIMUM_COIN_VALUE * 10} coins`
+          `Funded ${walletAddress} with ${this.env.FUNDING_AMOUNT} coins`
         );
 
         // 200ms
