@@ -27,9 +27,7 @@ export class SmallCoinsManager extends RoutineJob {
 
   async execute() {
     this.lastRun = new Date();
-    const funderWallet = Wallet.fromPrivateKey(
-      this.env.FUEL_FUNDER_PRIVATE_KEY
-    );
+    const funderWallet = Wallet.fromPrivateKey(this.env.FUEL_FUNDER_PRIVATE_KEY);
 
     console.log('executing routine: ', this.name);
 
