@@ -28,11 +28,13 @@ import type {
   TypedRequest,
   TypedResponse,
 } from '../types';
-import { rateLimit } from 'express-rate-limit';
+import { rateLimit, type ClientRateLimitInfo } from 'express-rate-limit';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
 
 config();
+
+const allocateCoinRateLimitStore = new Map<string, ClientRateLimitInfo>();
 
 // 10000 in Fuel units
 // TODO: move this to .env
@@ -95,6 +97,8 @@ const main = async () => {
       }
     : {};
 
+  app.set('trust proxy', true);
+
   // Basic CORS setup
   app.use(
     cors({
@@ -114,7 +118,10 @@ const main = async () => {
   app.post(
     '/allocate-coin',
     allocateCoinRateLimit,
-    async (_req: TypedRequest<{}>, res: AllocateCoinResponse) => {
+    async (req: TypedRequest<{}>, res: AllocateCoinResponse) => {
+      const v = await allocateCoinRateLimit.getKey(req.ip);
+      allocateCoinRateLimitStore.set(req.ip, v);
+
       // TODO: Implement coin retrieval logic
 
       let coin: Coin | null = null;
@@ -170,7 +177,7 @@ const main = async () => {
       }
 
       console.log('jobId', jobId);
-      console.log('sent coin:', coin);
+      // console.log('sent coin:', coin);
 
       const {
         success,
@@ -291,14 +298,18 @@ const main = async () => {
   // TODO: use zod for the response type and do a safe parse
   app.get(
     '/metadata',
-    (
-      _req: TypedRequest<void>,
+    async (
+      req: TypedRequest<void>,
       res: TypedResponse<{
         maxValuePerCoin: `0x${string}`;
+        allocateCoinRateLimit: ClientRateLimitInfo | undefined;
       }>
     ) => {
       // 10000 in Fuel units
-      res.status(200).json({ maxValuePerCoin: MAX_VALUE_PER_COIN });
+      res.status(200).json({
+        maxValuePerCoin: MAX_VALUE_PER_COIN,
+        allocateCoinRateLimit: allocateCoinRateLimitStore.get(req.ip),
+      });
     }
   );
 
