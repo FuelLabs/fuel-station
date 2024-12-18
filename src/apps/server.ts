@@ -102,7 +102,7 @@ const main = async () => {
   // Basic CORS setup
   app.use(
     cors({
-      origin: 'http://localhost:5173', // React app's URL
+      origin: ['http://localhost:5173', ...ENV.ALLOWED_ORIGINS.split(',')], // React app's URL
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization'],
     })
