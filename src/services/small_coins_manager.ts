@@ -27,6 +27,9 @@ export class SmallCoinsManager extends RoutineJob {
 
   async execute() {
     this.lastRun = new Date();
+    const funderWallet = Wallet.fromPrivateKey(
+      this.env.FUEL_FUNDER_PRIVATE_KEY
+    );
 
     console.log('executing routine: ', this.name);
 
@@ -64,13 +67,13 @@ export class SmallCoinsManager extends RoutineJob {
       request.outputs = [];
 
       request.addCoinOutput(
-        Address.fromAddressOrString(this.env.FUEL_CHANGE_COLLECTOR_ADDRESS),
+        funderWallet.address,
         totalCoinValue,
         this.fuelClient.getBaseAssetId()
       );
 
       request.addChangeOutput(
-        Address.fromAddressOrString(this.env.FUEL_CHANGE_COLLECTOR_ADDRESS),
+        funderWallet.address,
         this.fuelClient.getBaseAssetId()
       );
 
