@@ -1,5 +1,4 @@
 import express from 'express';
-import { config } from 'dotenv';
 import {
   AllocateCoinResponseSchema,
   findInputCoinTypeCoin,
@@ -31,9 +30,6 @@ import type {
 import { rateLimit, type ClientRateLimitInfo } from 'express-rate-limit';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
-
-const envPath = `.env.${process.env.ENV?.toLowerCase()}`;
-config({ path: envPath });
 
 const allocateCoinRateLimitStore = new Map<string, ClientRateLimitInfo>();
 

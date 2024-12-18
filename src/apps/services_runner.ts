@@ -14,6 +14,9 @@ const main = async () => {
 
   const env = envSchema.parse(process.env);
 
+  console.log(env);
+  return;
+
   const supabaseClient: SupabaseClient<Database> = createClient(
     env.SUPABASE_URL,
     env.SUPABASE_ANON_KEY
