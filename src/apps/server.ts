@@ -37,10 +37,6 @@ import axios from 'axios';
 // Middleware to verify reCAPTCHA
 const verifyRecaptcha = async (req, res, next) => {
   const recaptchaToken = req.body.recaptchaToken;
-  console.log('req.body', req.body);
-
-  console.log('recaptchaToken', recaptchaToken);
-
   if (!recaptchaToken) {
     return res.status(400).json({ error: 'reCAPTCHA token is required' });
   }
