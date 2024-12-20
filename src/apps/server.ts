@@ -141,7 +141,7 @@ const main = async () => {
     cors({
       origin: ['http://localhost:5173', ...ENV.ALLOWED_ORIGINS.split(',')], // React app's URL
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Recaptcha-Token'],
     })
   );
 
