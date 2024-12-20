@@ -49,7 +49,7 @@ const verifyRecaptcha = async (req, res, next) => {
       null,
       {
         params: {
-          secret: 'YOUR_RECAPTCHA_SECRET_KEY',
+          secret: ENV.CAPTCHA_SECRET_KEY,
           response: recaptchaToken,
         },
       }
