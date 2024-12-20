@@ -54,11 +54,6 @@ export const findOutputCoinTypeChange = (
     }
   );
 
-  console.log(
-    'outputChangesBelongingToAccount:',
-    outputChangesBelongingToAccount
-  );
-
   if (!outputChangesBelongingToAccount) {
     return null;
   }

@@ -32,6 +32,51 @@ import { rateLimit, type ClientRateLimitInfo } from 'express-rate-limit';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
 import { env } from 'bun';
+import axios from 'axios';
+
+// Middleware to verify reCAPTCHA
+const verifyRecaptcha = async (req, res, next) => {
+  const { recaptchaToken } = req.body;
+
+  if (!recaptchaToken) {
+    return res.status(400).json({ error: 'reCAPTCHA token is required' });
+  }
+
+  try {
+    // Verify token with Google
+    const response = await axios.post(
+      'https://www.google.com/recaptcha/api/siteverify',
+      null,
+      {
+        params: {
+          secret: 'YOUR_RECAPTCHA_SECRET_KEY',
+          response: recaptchaToken,
+        },
+      }
+    );
+
+    const { success, score, challenge_ts } = response.data;
+
+    // Check token age (challenge_ts is in ISO format)
+    const tokenAge = Date.now() - new Date(challenge_ts).getTime();
+    if (tokenAge > 120000) {
+      // 120000 ms = 2 minutes
+      return res.status(400).json({ error: 'reCAPTCHA token expired' });
+    }
+
+    // Check if the score is above your threshold (0.0 to 1.0)
+    if (!success || score < 0.5) {
+      return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+    }
+
+    // Store score in request for later use if needed
+    req.recaptchaScore = score;
+    next();
+  } catch (error) {
+    console.error('reCAPTCHA verification error:', error);
+    return res.status(500).json({ error: 'Failed to verify reCAPTCHA' });
+  }
+};
 
 const allocateCoinRateLimitStore = new Map<string, ClientRateLimitInfo>();
 
@@ -99,6 +144,10 @@ const main = async () => {
       allowedHeaders: ['Content-Type', 'Authorization'],
     })
   );
+
+  if (ENV.ENABLE_CAPTCHA) {
+    app.use(verifyRecaptcha);
+  }
 
   app.use(express.json());
   app.use(apiRateLimit);
