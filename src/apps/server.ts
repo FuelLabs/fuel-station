@@ -157,7 +157,9 @@ const main = async () => {
 
   app.post(
     '/allocate-coin',
-    ENV.ENABLE_CAPTCHA ? [verifyRecaptcha, allocateCoinRateLimit] : [allocateCoinRateLimit],
+    ENV.ENABLE_CAPTCHA
+      ? [verifyRecaptcha, allocateCoinRateLimit]
+      : [allocateCoinRateLimit],
     async (req: TypedRequest<{}>, res: AllocateCoinResponse) => {
       if (req.ip) {
         const rateLimitInfo = await allocateCoinRateLimit.getKey(req.ip);
@@ -260,110 +262,114 @@ const main = async () => {
         req.body
       );
 
-    if (!success) {
-      console.error(error);
-      return res.status(400).json({ error: 'Invalid request body' });
-    }
-
-    const baseAssetId = (await fuelClient.getProvider()).getBaseAssetId();
-
-    console.log('req.body', data);
-
-    const scriptRequest = data.request;
-
-    const jobId = data.jobId;
-    console.log('jobId', jobId);
-
-    const { error: getJobError, job } = await supabaseDB.getJob(jobId);
-    if (getJobError) {
-      console.error(getJobError);
-      return res.status(500).json({ error: 'Failed to get job' });
-    }
-
-    const { error: getAccountError, account: accountData } =
-      await supabaseDB.getAccount(job.address);
-    if (getAccountError) {
-      console.error(getAccountError);
-      return res.status(500).json({ error: 'Failed to get account' });
-    }
-    if (!accountData) {
-      return res.status(404).json({ error: 'Account data not found' });
-    }
-
-    // This is to sanity check that the account has not been unlocked by another request and we don't accidentally unlock it
-    if (accountData.expiry !== job.expiry) {
-      return res.status(400).json({ error: 'Job expired' });
-    }
-
-    if (new Date(job.expiry) < new Date()) {
-      const unlockError = await supabaseDB.unlockAccount(job.address);
-
-      if (unlockError) {
-        console.error(unlockError);
-        return res.status(500).json({ error: 'Failed to unlock account' });
+      if (!success) {
+        console.error(error);
+        return res.status(400).json({ error: 'Invalid request body' });
       }
 
-      return res.status(400).json({ error: 'Job expired' });
+      const baseAssetId = (await fuelClient.getProvider()).getBaseAssetId();
+
+      console.log('req.body', data);
+
+      const scriptRequest = data.request;
+
+      const jobId = data.jobId;
+      console.log('jobId', jobId);
+
+      const { error: getJobError, job } = await supabaseDB.getJob(jobId);
+      if (getJobError) {
+        console.error(getJobError);
+        return res.status(500).json({ error: 'Failed to get job' });
+      }
+
+      const { error: getAccountError, account: accountData } =
+        await supabaseDB.getAccount(job.address);
+      if (getAccountError) {
+        console.error(getAccountError);
+        return res.status(500).json({ error: 'Failed to get account' });
+      }
+      if (!accountData) {
+        return res.status(404).json({ error: 'Account data not found' });
+      }
+
+      // This is to sanity check that the account has not been unlocked by another request and we don't accidentally unlock it
+      if (accountData.expiry !== job.expiry) {
+        return res.status(400).json({ error: 'Job expired' });
+      }
+
+      if (new Date(job.expiry) < new Date()) {
+        const unlockError = await supabaseDB.unlockAccount(job.address);
+
+        if (unlockError) {
+          console.error(unlockError);
+          return res.status(500).json({ error: 'Failed to unlock account' });
+        }
+
+        return res.status(400).json({ error: 'Job expired' });
+      }
+
+      const account = accounts.find(({ address }) => address === job.address);
+      if (!account) {
+        return res.status(404).json({ error: 'Account not found' });
+      }
+
+      const inputCoin = findInputCoinTypeCoin(
+        scriptRequest,
+        job.address,
+        baseAssetId
+      );
+      if (!inputCoin) {
+        return res.status(400).json({
+          error: 'No input coin belonging to account in the script transaction',
+        });
+      }
+
+      const outputCoin = findOutputCoinTypeCoin(
+        scriptRequest,
+        job.address,
+        baseAssetId
+      );
+      if (!outputCoin) {
+        return res.status(400).json({
+          error:
+            'No output coin belonging to account in the script transaction',
+        });
+      }
+
+      if (
+        bn(outputCoin.amount).lt(bn(inputCoin.amount).sub(MAX_VALUE_PER_COIN))
+      ) {
+        return res.status(400).json({
+          error: 'Output coin amount is too low',
+        });
+      }
+
+      const outputChange = findOutputCoinTypeChange(
+        scriptRequest,
+        job.address,
+        baseAssetId
+      );
+
+      if (!outputChange) {
+        return res.status(400).json({
+          error:
+            'No output change belonging to change collector in the script transaction',
+        });
+      }
+
+      const wallet = Wallet.fromPrivateKey(account.privateKey, fuelProvider);
+
+      const request = new ScriptTransactionRequest();
+
+      setRequestFields(request, scriptRequest);
+
+      const signature = (await wallet.signTransaction(
+        request
+      )) as `0x${string}`;
+
+      res.status(200).json({ signature });
     }
-
-    const account = accounts.find(({ address }) => address === job.address);
-    if (!account) {
-      return res.status(404).json({ error: 'Account not found' });
-    }
-
-    const inputCoin = findInputCoinTypeCoin(
-      scriptRequest,
-      job.address,
-      baseAssetId
-    );
-    if (!inputCoin) {
-      return res.status(400).json({
-        error: 'No input coin belonging to account in the script transaction',
-      });
-    }
-
-    const outputCoin = findOutputCoinTypeCoin(
-      scriptRequest,
-      job.address,
-      baseAssetId
-    );
-    if (!outputCoin) {
-      return res.status(400).json({
-        error: 'No output coin belonging to account in the script transaction',
-      });
-    }
-
-    if (
-      bn(outputCoin.amount).lt(bn(inputCoin.amount).sub(MAX_VALUE_PER_COIN))
-    ) {
-      return res.status(400).json({
-        error: 'Output coin amount is too low',
-      });
-    }
-
-    const outputChange = findOutputCoinTypeChange(
-      scriptRequest,
-      job.address,
-      baseAssetId
-    );
-
-    if (!outputChange) {
-      return res.status(400).json({
-        error:
-          'No output change belonging to change collector in the script transaction',
-      });
-    }
-
-    const wallet = Wallet.fromPrivateKey(account.privateKey, fuelProvider);
-
-    const request = new ScriptTransactionRequest();
-
-    setRequestFields(request, scriptRequest);
-
-    const signature = (await wallet.signTransaction(request)) as `0x${string}`;
-
-    res.status(200).json({ signature });
-  });
+  );
 
   // returns the maximum value that can be used per coin in a request
   // TODO: use zod for the response type and do a safe parse
