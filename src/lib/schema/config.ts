@@ -16,7 +16,7 @@ export const envSchema = z.object({
   SSL_CERT_PATH: z.string().default(''),
   API_RATE_LIMIT_PER_MINUTE: z.coerce.number().default(1000),
   ALLOCATE_COIN_RATE_LIMIT_PER_HOUR: z.coerce.number().default(1000),
-  ENABLE_CAPTCHA: z.boolean().default(false),
+  ENABLE_CAPTCHA: z.coerce.boolean().default(false),
   CAPTCHA_SECRET_KEY: z.string().default(''),
 });
 
