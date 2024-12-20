@@ -57,6 +57,10 @@ const verifyRecaptcha = async (req, res, next) => {
 
     const { success, score, challenge_ts } = response.data;
 
+    if (!success) {
+      return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+    }
+
     // Check token age (challenge_ts is in ISO format)
     const tokenAge = Date.now() - new Date(challenge_ts).getTime();
     if (tokenAge > 120000) {
