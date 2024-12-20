@@ -36,7 +36,10 @@ import axios from 'axios';
 
 // Middleware to verify reCAPTCHA
 const verifyRecaptcha = async (req, res, next) => {
-  const recaptchaToken = req.headers['X-Recaptcha-Token'];
+  const recaptchaToken = req.body.recaptchaToken;
+  console.log('req.body', req.body);
+
+  console.log('recaptchaToken', recaptchaToken);
 
   if (!recaptchaToken) {
     return res.status(400).json({ error: 'reCAPTCHA token is required' });
@@ -149,10 +152,6 @@ const main = async () => {
     })
   );
 
-  if (ENV.ENABLE_CAPTCHA) {
-    app.use(verifyRecaptcha);
-  }
-
   app.use(express.json());
   app.use(apiRateLimit);
 
@@ -162,7 +161,7 @@ const main = async () => {
 
   app.post(
     '/allocate-coin',
-    allocateCoinRateLimit,
+    ENV.ENABLE_CAPTCHA ? [verifyRecaptcha, allocateCoinRateLimit] : [allocateCoinRateLimit],
     async (req: TypedRequest<{}>, res: AllocateCoinResponse) => {
       if (req.ip) {
         const rateLimitInfo = await allocateCoinRateLimit.getKey(req.ip);
@@ -257,10 +256,13 @@ const main = async () => {
     }
   );
 
-  app.post('/sign', async (req: SignRequest, res: SignResponse) => {
-    const { success, error, data } = ScriptRequestSignSchema.safeParse(
-      req.body
-    );
+  app.post(
+    '/sign',
+    ENV.ENABLE_CAPTCHA ? [verifyRecaptcha] : [],
+    async (req: SignRequest, res: SignResponse) => {
+      const { success, error, data } = ScriptRequestSignSchema.safeParse(
+        req.body
+      );
 
     if (!success) {
       console.error(error);
@@ -392,6 +394,7 @@ const main = async () => {
 
   app.post(
     '/jobs/:jobId/complete',
+    ENV.ENABLE_CAPTCHA ? [verifyRecaptcha] : [],
     async (
       req: TypedRequest<{
         txnHash: string;
