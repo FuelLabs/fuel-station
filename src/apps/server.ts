@@ -64,7 +64,9 @@ const verifyRecaptcha = async (req, res, next) => {
     const tokenAge = Date.now() - new Date(challenge_ts).getTime();
     if (tokenAge > 120000) {
       // 120000 ms = 2 minutes
-      return res.status(400).json({ error: 'reCAPTCHA token expired' });
+      return res
+        .status(400)
+        .json({ error: 'reCAPTCHA token expired, more than 2 minutes' });
     }
 
     // Check if the score is above your threshold (0.0 to 1.0)
