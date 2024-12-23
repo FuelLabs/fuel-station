@@ -60,15 +60,6 @@ const verifyRecaptcha = async (req, res, next) => {
       return res.status(400).json({ error: 'reCAPTCHA verification failed' });
     }
 
-    // Check token age (challenge_ts is in ISO format)
-    const tokenAge = Date.now() - new Date(challenge_ts).getTime();
-    if (tokenAge > 120000) {
-      // 120000 ms = 2 minutes
-      return res
-        .status(400)
-        .json({ error: 'reCAPTCHA token expired, more than 2 minutes' });
-    }
-
     // Check if the score is above your threshold (0.0 to 1.0)
     if (!success || score < 0.5) {
       return res.status(400).json({ error: 'reCAPTCHA verification failed' });
