@@ -5,6 +5,7 @@ import {
   findOutputCoinTypeChange,
   findOutputCoinTypeCoin,
   FuelClient,
+  healthHandler,
   ScriptRequestSignSchema,
   setRequestFields,
   SupabaseDB,
@@ -33,6 +34,7 @@ import { readFileSync } from 'node:fs';
 import https from 'node:https';
 import http from 'node:http';
 import axios from 'axios';
+import { allocateCoinHandler } from './handlers/allocate_coin';
 
 // Middleware to verify reCAPTCHA
 const verifyRecaptcha = async (req, res, next) => {
@@ -112,7 +114,7 @@ export type GasStationServerConfig = {
 
 export class GasStationServer {
   private config: GasStationServerConfig;
-  private server: https.Server | http.Server;
+  private server: https.Server | http.Server | null = null;
 
   constructor(config: GasStationServerConfig) {
     this.config = config;
@@ -132,6 +134,10 @@ export class GasStationServer {
     } = this.config;
 
     console.log('isHttps', isHttps);
+
+    app.locals.supabaseDB = supabaseDB;
+    app.locals.fuelClient = fuelClient;
+    app.locals.ENV = ENV;
 
     const options = isHttps
       ? {
@@ -154,107 +160,15 @@ export class GasStationServer {
     app.use(express.json());
     app.use(apiRateLimit);
 
-    app.get('/health', (_req, res) => {
-      res.status(200).json({ status: 'healthy' });
-    });
+    app.get('/health', healthHandler);
 
     app.post(
       '/allocate-coin',
       enableCaptcha
         ? [verifyRecaptcha, allocateCoinRateLimit]
         : [allocateCoinRateLimit],
-      async (req: TypedRequest<{}>, res: AllocateCoinResponse) => {
-        if (req.ip) {
-          const rateLimitInfo = await allocateCoinRateLimit.getKey(req.ip);
-          if (rateLimitInfo) {
-            allocateCoinRateLimitStore.set(req.ip, rateLimitInfo);
-
-            const resetTime = rateLimitInfo.resetTime;
-            if (resetTime) {
-              setTimeout(
-                () => {
-                  allocateCoinRateLimitStore.clear();
-                },
-                Number(resetTime) - Date.now()
-              );
-            }
-          }
-        }
-
-        // TODO: Implement coin retrieval logic
-        // TODO: Implement coin retrieval logic
-
-        let coin: Coin | null = null;
-        let address: string | null = null;
-
-        while (!coin) {
-          address = await supabaseDB.getNextAccount();
-          if (!address) {
-            return res.status(404).json({ error: 'No unlocked account found' });
-          }
-
-          const result = await fuelClient.getCoin(
-            address,
-            ENV.MINIMUM_COIN_VALUE
-          );
-          if (!result) {
-            await supabaseDB.setAccountNeedsFunding(address, true);
-            continue;
-          }
-
-          coin = result;
-        }
-
-        if (!address) {
-          return res.status(404).json({
-            error: 'No unlocked account found after multiple attempts',
-          });
-        }
-        if (!coin) {
-          return res
-            .status(404)
-            .json({ error: 'No unlocked coin found after multiple attempts' });
-        }
-
-        // Lock the account & the job for 30 seconds
-        const lockTimeStamp = new Date(Date.now() + 1000 * 30);
-
-        // Lock the account for 30 seconds
-        const lockError = await supabaseDB.lockAccount(address, lockTimeStamp);
-
-        if (lockError) {
-          console.error(lockError);
-          return res.status(500).json({ error: 'Failed to lock account' });
-        }
-
-        const { error: insertError, jobId } = await supabaseDB.insertNewJob(
-          address,
-          lockTimeStamp
-        );
-        if (insertError) {
-          console.error(insertError);
-          return res.status(500).json({ error: 'Failed to insert job' });
-        }
-
-        console.log('jobId', jobId);
-        // console.log('sent coin:', coin);
-
-        const {
-          success,
-          data: response,
-          error,
-        } = AllocateCoinResponseSchema.safeParse({
-          coin: normalizeJSON(coin),
-          jobId,
-        });
-
-        if (!success) {
-          console.error(error);
-          return res.status(500).json({ error: 'Failed to allocate coin' });
-        }
-
-        res.status(200).send(response);
-      }
+      // @ts-ignore: TODO: fix handler type
+      allocateCoinHandler
     );
 
     app.post(
