@@ -8,9 +8,9 @@ import {
   ScriptRequestSignSchema,
   setRequestFields,
   SupabaseDB,
-} from '../lib';
+} from '..';
 import { createClient } from '@supabase/supabase-js';
-import { envSchema } from '../lib/schema/config';
+import { envSchema } from '../schema/config';
 import {
   bn,
   normalizeJSON,
@@ -19,7 +19,7 @@ import {
   Wallet,
   type Coin,
 } from 'fuels';
-import accounts from '../../accounts.json';
+import accounts from '../../../accounts.json';
 import cors from 'cors';
 import type {
   AllocateCoinResponse,
@@ -27,10 +27,11 @@ import type {
   SignResponse,
   TypedRequest,
   TypedResponse,
-} from '../types';
+} from '../../types';
 import { rateLimit, type ClientRateLimitInfo } from 'express-rate-limit';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
+import http from 'node:http';
 import axios from 'axios';
 
 // Middleware to verify reCAPTCHA
@@ -109,8 +110,9 @@ type GasStationServerConfig = {
   enableCaptcha: boolean;
 };
 
-class GasStationServer {
+export class GasStationServer {
   private config: GasStationServerConfig;
+  private server: https.Server | http.Server;
 
   constructor(config: GasStationServerConfig) {
     this.config = config;
@@ -118,6 +120,7 @@ class GasStationServer {
 
   async start() {
     const app = express();
+
     const {
       port,
       supabaseDB,
@@ -441,13 +444,27 @@ class GasStationServer {
     );
 
     if (isHttps) {
-      https.createServer(options, app).listen(port, () => {
+      this.server = https.createServer(options, app).listen(port, () => {
         console.log(`Server is running on port ${port}`);
       });
     } else {
-      app.listen(port, () => {
+      this.server = app.listen(port, () => {
         console.log(`Server is running on port ${port}`);
       });
     }
+  }
+
+  async stop() {
+    if (!this.server) {
+      throw new Error('Server not started');
+    }
+
+    const promise = new Promise((resolve) => {
+      this.server.close(() => {
+        resolve(true);
+      });
+    });
+
+    await promise;
   }
 }
