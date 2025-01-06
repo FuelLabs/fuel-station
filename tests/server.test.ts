@@ -1,6 +1,7 @@
 import { expect, test, describe, afterAll } from 'bun:test';
 import type { GasStationServerConfig } from '../src/lib/server';
 import {
+  AllocateCoinResponseSchema,
   envSchema,
   FuelClient,
   GasStationServer,
@@ -36,13 +37,25 @@ describe('server', async () => {
 
   await server.start();
 
-  test('should return 200', async () => {
+  test('should return healthy', async () => {
     const response = await axios.get(
       `http://localhost:${serverConfig.port}/health`
     );
 
     expect(response.status).toBe(200);
     expect(response.data).toEqual({ status: 'healthy' });
+  });
+
+  test('should return an allocated coin', async () => {
+    console.log('env.ENV', env.ENV);
+    const response = await axios.post(
+      `http://localhost:${serverConfig.port}/allocate-coin`
+    );
+
+    expect(response.status).toBe(200);
+
+    const { success } = AllocateCoinResponseSchema.safeParse(response.data);
+    expect(success).toBe(true);
   });
 
   afterAll(async () => {
