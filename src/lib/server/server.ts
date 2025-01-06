@@ -100,7 +100,7 @@ const allocateCoinRateLimit = rateLimit({
   legacyHeaders: false,
 });
 
-type GasStationServerConfig = {
+export type GasStationServerConfig = {
   port: number;
   supabaseDB: SupabaseDB;
   fuelClient: FuelClient;
@@ -443,15 +443,21 @@ export class GasStationServer {
       }
     );
 
-    if (isHttps) {
-      this.server = https.createServer(options, app).listen(port, () => {
-        console.log(`Server is running on port ${port}`);
-      });
-    } else {
-      this.server = app.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
-      });
-    }
+    const promise = new Promise((resolve) => {
+      if (isHttps) {
+        this.server = https.createServer(options, app).listen(port, () => {
+          console.log(`Server is running on port ${port}`);
+          resolve(true);
+        });
+      } else {
+        this.server = app.listen(port, () => {
+          console.log(`Server is running on port ${port}`);
+          resolve(true);
+        });
+      }
+    });
+
+    await promise;
   }
 
   async stop() {
