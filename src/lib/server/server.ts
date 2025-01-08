@@ -6,6 +6,7 @@ import {
   findOutputCoinTypeCoin,
   FuelClient,
   healthHandler,
+  jobCompleteHandler,
   ScriptRequestSignSchema,
   setRequestFields,
   SupabaseDB,
@@ -194,72 +195,11 @@ export class GasStationServer {
       signHandler
     );
 
-    // returns the maximum value that can be used per coin in a request
-    // TODO: use zod for the response type and do a safe parse
-    app.get(
-      '/metadata',
-      async (
-        req: TypedRequest<void>,
-        res: TypedResponse<{
-          maxValuePerCoin: `0x${string}`;
-          allocateCoinRateLimit: ClientRateLimitInfo | undefined;
-        }>
-      ) => {
-        // 10000 in Fuel units
-        res.status(200).json({
-          maxValuePerCoin: MAX_VALUE_PER_COIN,
-          allocateCoinRateLimit: allocateCoinRateLimitStore.get(req.ip)
-            ? allocateCoinRateLimitStore.get(req.ip)
-            : {
-                totalHits: 0,
-              },
-        });
-      }
-    );
-
     app.post(
       '/jobs/:jobId/complete',
       enableCaptcha ? [verifyRecaptcha] : [],
-      async (
-        req: TypedRequest<{
-          txnHash: string;
-        }>,
-        res: TypedResponse<{ error: string } | { status: 'success' }>
-      ) => {
-        const { jobId, txnHash } = req.params;
-
-        const { error: getJobError, job } = await supabaseDB.getJob(jobId);
-        if (getJobError) {
-          console.error(getJobError);
-          return res.status(500).json({ error: 'Failed to get job' });
-        }
-
-        if (!job) {
-          return res.status(404).json({ error: 'Job not found' });
-        }
-
-        if (job.job_status === 'completed') {
-          return res.status(400).json({ error: 'Job already completed' });
-        }
-
-        const unlockAccountError = await supabaseDB.unlockAccount(job.address);
-
-        if (unlockAccountError) {
-          console.error(unlockAccountError);
-          return res.status(500).json({ error: 'Failed to unlock account' });
-        }
-
-        const updateJobError = await supabaseDB.updateJobStatus(
-          jobId,
-          'completed'
-        );
-        if (updateJobError) {
-          console.error(updateJobError);
-          return res.status(500).json({ error: 'Failed to update job status' });
-        }
-
-        return res.status(200).json({ status: 'success' });
-      }
+      // @ts-ignore: TODO: fix handler type
+      jobCompleteHandler
     );
 
     const promise = new Promise((resolve) => {
@@ -280,11 +220,12 @@ export class GasStationServer {
   }
 
   async stop() {
-    if (!this.server) {
-      throw new Error('Server not started');
-    }
+    const promise = new Promise((resolve, reject) => {
+      if (!this.server) {
+        reject(new Error('Server not started'));
+        return;
+      }
 
-    const promise = new Promise((resolve) => {
       this.server.close(() => {
         resolve(true);
       });
