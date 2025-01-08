@@ -5,11 +5,20 @@ import {
   envSchema,
   FuelClient,
   GasStationServer,
+  GetSignatureRequestSchema,
   SupabaseDB,
 } from '../src/lib';
 import { createClient } from '@supabase/supabase-js';
-import { Provider, Wallet } from 'fuels';
+import {
+  Address,
+  bn,
+  Provider,
+  ScriptTransactionRequest,
+  Wallet,
+  type Coin,
+} from 'fuels';
 import axios from 'axios';
+import accounts from '../accounts.json';
 
 describe('server', async () => {
   const env = envSchema.parse(process.env);
@@ -47,18 +56,68 @@ describe('server', async () => {
   });
 
   test('should return an allocated coin', async () => {
-    console.log('env.ENV', env.ENV);
-    const response = await axios.post(
+    const { status, data } = await axios.post(
       `http://localhost:${serverConfig.port}/allocate-coin`
     );
 
-    expect(response.status).toBe(200);
+    expect(status).toBe(200);
 
-    const { success } = AllocateCoinResponseSchema.safeParse(response.data);
+    const { success } = AllocateCoinResponseSchema.safeParse(data);
     expect(success).toBe(true);
   });
 
   afterAll(async () => {
     await server.stop();
+  });
+
+  test('should get signed message', async () => {
+    const { data: AllocateCoinResponseData } = await axios.post(
+      `http://localhost:${serverConfig.port}/allocate-coin`
+    );
+
+    const { coin, jobId } = AllocateCoinResponseSchema.parse(
+      AllocateCoinResponseData
+    );
+
+    const gasCoin: Coin = {
+      id: coin.id,
+      amount: bn(coin.amount),
+      assetId: coin.assetId,
+      owner: Address.fromAddressOrString(coin.owner),
+      blockCreated: bn(coin.blockCreated),
+      txCreatedIdx: bn(coin.txCreatedIdx),
+    };
+
+    console.log('gasCoin', gasCoin);
+
+    const scriptTransaction = new ScriptTransactionRequest();
+    scriptTransaction.addCoinInput(gasCoin);
+
+    const payload = { request: scriptTransaction.toJSON(), jobId };
+
+    const { status, data } = await axios.post(
+      `http://localhost:${serverConfig.port}/sign`,
+      payload
+    );
+
+    expect(status).toBe(200);
+    expect(data).toBeDefined();
+
+    const recievedSignature = data.signature;
+
+    const account = accounts.find((account) => {
+      return account.address === gasCoin.owner.toB256();
+    });
+
+    if (!account) {
+      throw new Error('Account not found');
+    }
+
+    const wallet = Wallet.fromPrivateKey(account.privateKey, fuelProvider);
+    const expectedSignature = await wallet.signTransaction(scriptTransaction);
+
+    expect(recievedSignature.toLowerCase()).toEqual(
+      expectedSignature.toLowerCase()
+    );
   });
 });

@@ -132,6 +132,10 @@ export class GasStationServer {
 
   constructor(config: GasStationServerConfig) {
     this.config = config;
+
+    if (!this.config.policyHandlers) {
+      this.config.policyHandlers = [];
+    }
   }
 
   async start() {
