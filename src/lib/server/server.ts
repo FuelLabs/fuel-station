@@ -36,8 +36,6 @@ export type GasStationServerConfig = {
   fuelClient: FuelClient;
   funderWallet: Wallet;
   isHttps: boolean;
-  allowedOrigins: string[];
-  enableCaptcha: boolean;
   policyHandlers: PolicyHandler[];
 };
 
@@ -62,8 +60,6 @@ export class GasStationServer {
       fuelClient,
       funderWallet,
       isHttps,
-      allowedOrigins,
-      enableCaptcha,
       policyHandlers,
     } = this.config;
 
