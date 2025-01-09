@@ -6,6 +6,7 @@ import {
   FuelClient,
   GasStationServer,
   GetSignatureRequestSchema,
+  schedulerSetup,
   SupabaseDB,
 } from '../src/lib';
 import { createClient } from '@supabase/supabase-js';
@@ -22,7 +23,8 @@ import accounts from '../accounts.json';
 
 describe('server', async () => {
   const env = envSchema.parse(process.env);
-  const supabaseDB = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+  const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+  const supabaseDB = new SupabaseDB(supabaseClient);
   const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
   const funderWallet = Wallet.fromPrivateKey(env.FUEL_FUNDER_PRIVATE_KEY);
 
@@ -34,7 +36,7 @@ describe('server', async () => {
 
   const serverConfig: GasStationServerConfig = {
     port: 3000,
-    supabaseDB: new SupabaseDB(supabaseDB),
+    supabaseDB: new SupabaseDB(supabaseClient),
     fuelClient: fuelClient,
     funderWallet: funderWallet,
     isHttps: false,
@@ -42,8 +44,10 @@ describe('server', async () => {
   };
 
   const server = new GasStationServer(serverConfig);
+  const scheduler = schedulerSetup({ supabaseDB, fuelClient, env });
 
   await server.start();
+  await scheduler.start();
 
   test('should return healthy', async () => {
     const response = await axios.get(
@@ -67,6 +71,7 @@ describe('server', async () => {
 
   afterAll(async () => {
     await server.stop();
+    await scheduler.stop();
   });
 
   test('should get signed message', async () => {
