@@ -1,20 +1,17 @@
-import { expect, test, describe, afterAll } from 'bun:test';
-import type { GasStationServerConfig } from '../src/lib/server';
+import { createClient } from '@supabase/supabase-js';
 import {
   envSchema,
   FuelClient,
   GasStationServer,
   schedulerSetup,
   SupabaseDB,
-} from '../src/lib';
-import { createClient } from '@supabase/supabase-js';
-import { bn, Provider, ScriptTransactionRequest, Wallet } from 'fuels';
-import { GasStationClient } from '../src/lib/client';
+  type GasStationServerConfig,
+} from '../../src/lib';
+import { bn, Provider, Wallet } from 'fuels';
 
-describe('client', async () => {
-  const maxValuePerCoin = bn(10000);
-
+const main = async () => {
   const env = envSchema.parse(process.env);
+
   const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
   const supabaseDB = new SupabaseDB(supabaseClient);
   const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
@@ -33,7 +30,7 @@ describe('client', async () => {
     funderWallet: funderWallet,
     isHttps: false,
     policyHandlers: [],
-    maxValuePerCoin,
+    maxValuePerCoin: bn(1000),
   };
 
   const server = new GasStationServer(serverConfig);
@@ -41,23 +38,6 @@ describe('client', async () => {
 
   await server.start();
   await scheduler.start();
+};
 
-  afterAll(async () => {
-    await server.stop();
-    scheduler.stop();
-  });
-
-  test('prepare gasless transaction', async () => {
-    const client = new GasStationClient(
-      `http://localhost:${serverConfig.port}`
-    );
-
-    const transaction = new ScriptTransactionRequest();
-    const gaslessTransaction =
-      await client.prepareGaslessTransaction(transaction);
-
-    expect(gaslessTransaction).toBeDefined();
-
-    console.log('gaslessTransaction', gaslessTransaction);
-  });
-});
+main();

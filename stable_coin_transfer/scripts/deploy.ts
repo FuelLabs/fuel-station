@@ -41,7 +41,7 @@ const main = async () => {
   const fuelAccount = Wallet.generate();
 
   writeFileSync(
-    './example/depolyments.json',
+    './stable_coin_transfer/depolyments.json',
     JSON.stringify(
       {
         contractId,
