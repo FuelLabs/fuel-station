@@ -38,8 +38,7 @@ describe('server', async () => {
     fuelClient: fuelClient,
     funderWallet: funderWallet,
     isHttps: false,
-    allowedOrigins: [],
-    enableCaptcha: false,
+    policyHandlers: [],
   };
 
   const server = new GasStationServer(serverConfig);

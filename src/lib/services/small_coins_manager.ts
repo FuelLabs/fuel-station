@@ -1,7 +1,7 @@
 import { sleep } from 'bun';
-import type { FuelClient, SupabaseDB, EnvConfig } from '../lib';
-import { RoutineJob } from '../lib/index';
-import accounts from '../../accounts.json';
+import type { FuelClient, SupabaseDB, EnvConfig } from '..';
+import { RoutineJob } from '../index';
+import accounts from '../../../accounts.json';
 import { Address, bn, ScriptTransactionRequest, Wallet } from 'fuels';
 
 /// This routine looks for small coins in all accounts and if they exist, it sends them to a collector address
