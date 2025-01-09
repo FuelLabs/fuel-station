@@ -68,25 +68,22 @@ impl SRC3 for Contract {
     /// ```
     #[storage(read, write)]
     fn mint(recipient: Identity, sub_id: Option<SubId>, amount: u64) {
-        // require(
-        //     sub_id
-        //         .is_some() && sub_id
-        //         .unwrap() == DEFAULT_SUB_ID,
-        //     "Incorrect Sub Id",
-        // );
+        require(
+            sub_id
+                .is_some() && sub_id
+                .unwrap() == DEFAULT_SUB_ID,
+            "Incorrect Sub Id",
+        );
 
-        log(1);
-        // log(amount);
-        // log(storage.total_supply.read());
 
         // Increment total supply of the asset and mint to the recipient.
-        // let new_supply = amount + storage.total_supply.read();
-        // storage.total_supply.write(new_supply);
+        let new_supply = amount + storage.total_supply.read();
+        storage.total_supply.write(new_supply);
 
         mint_to(recipient, DEFAULT_SUB_ID, amount);
 
-        // TotalSupplyEvent::new(AssetId::default(), new_supply, msg_sender().unwrap())
-        //     .log();
+        TotalSupplyEvent::new(AssetId::default(), new_supply, msg_sender().unwrap())
+            .log();
     }
 
     /// Unconditionally burns assets sent with the default SubId.

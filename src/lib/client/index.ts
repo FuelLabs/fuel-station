@@ -3,17 +3,21 @@ import {
   Address,
   bn,
   InputType,
+  type Provider,
   type Coin,
   type InputCoin,
   type ScriptTransactionRequest,
+  WalletLocked,
+  WalletUnlocked,
 } from 'fuels';
-import { findInputCoinTypeCoin } from '../utils';
 
-export class gasStationClient {
+export class GasStationClient {
   endpoint: string;
+  fuelProvider: Provider;
 
-  constructor(endpoint: string) {
+  constructor(endpoint: string, fuelProvider: Provider) {
     this.endpoint = endpoint;
+    this.fuelProvider = fuelProvider;
   }
 
   async prepareGaslessTransaction(transaction: ScriptTransactionRequest) {
@@ -54,10 +58,44 @@ export class gasStationClient {
       gasCoin.assetId
     );
 
-    const { data: signature } = await axios.post(`${this.endpoint}/sign`, {
-      request: transaction.toJSON(),
-      jobId,
-    });
+    return { transaction, gasCoin, jobId };
+  }
+
+  async sendTransaction({
+    transaction,
+    gasCoin,
+    wallet,
+    jobId,
+    skipEstimate,
+  }: {
+    transaction: ScriptTransactionRequest;
+    wallet: WalletUnlocked;
+    gasCoin: Coin;
+    jobId: string;
+    skipEstimate?: boolean;
+  }) {
+    if (!skipEstimate) {
+      const result = await this.fuelProvider.estimateTxGasAndFee({
+        transactionRequest: transaction,
+      });
+
+      transaction.maxFee = result.maxFee;
+      transaction.gasLimit = result.maxGas;
+    }
+
+    const { data: signatureResponseData } = await axios.post(
+      `${this.endpoint}/sign`,
+      {
+        request: transaction.toJSON(),
+        jobId,
+      }
+    );
+
+    if (!signatureResponseData.signature) {
+      throw new Error('No signature found');
+    }
+
+    const signature = signatureResponseData.signature;
 
     const gasCoinInput = transaction.inputs.find((input) => {
       if (input.type === InputType.Coin) {
@@ -78,6 +116,11 @@ export class gasStationClient {
     const witnessIndex = gasCoinInput.witnessIndex;
     transaction.witnesses[witnessIndex] = signature;
 
-    return transaction;
+    const request =
+      await wallet.populateTransactionWitnessesSignature(transaction);
+
+    return this.fuelProvider.sendTransaction(request);
+
+    // return this.fuelProvider.sendTransaction(transaction);
   }
 }
