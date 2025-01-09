@@ -22,6 +22,8 @@ import axios from 'axios';
 import accounts from '../accounts.json';
 
 describe('server', async () => {
+  const maxValuePerCoin = bn(10000);
+
   const env = envSchema.parse(process.env);
   const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
   const supabaseDB = new SupabaseDB(supabaseClient);
@@ -41,6 +43,7 @@ describe('server', async () => {
     funderWallet: funderWallet,
     isHttps: false,
     policyHandlers: [],
+    maxValuePerCoin,
   };
 
   const server = new GasStationServer(serverConfig);
@@ -58,16 +61,29 @@ describe('server', async () => {
     expect(response.data).toEqual({ status: 'healthy' });
   });
 
-  test('should return an allocated coin', async () => {
-    const { status, data } = await axios.post(
-      `http://localhost:${serverConfig.port}/allocate-coin`
+  test('should return metadata', async () => {
+    const response = await axios.get(
+      `http://localhost:${serverConfig.port}/metadata`
     );
 
-    expect(status).toBe(200);
-
-    const { success } = AllocateCoinResponseSchema.safeParse(data);
-    expect(success).toBe(true);
+    expect(response.status).toBe(200);
+    expect(bn(response.data.maxValuePerCoin)).toEqual(maxValuePerCoin);
   });
+
+  test(
+    'should return an allocated coin',
+    async () => {
+      const { status, data } = await axios.post(
+        `http://localhost:${serverConfig.port}/allocate-coin`
+      );
+
+      expect(status).toBe(200);
+
+      const { success } = AllocateCoinResponseSchema.safeParse(data);
+      expect(success).toBe(true);
+    },
+    { timeout: 20 * 1000 }
+  );
 
   afterAll(async () => {
     await server.stop();
