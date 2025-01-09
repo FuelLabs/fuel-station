@@ -5,7 +5,6 @@ import {
   envSchema,
   FuelClient,
   GasStationServer,
-  GetSignatureRequestSchema,
   schedulerSetup,
   SupabaseDB,
 } from '../src/lib';
@@ -87,7 +86,7 @@ describe('server', async () => {
 
   afterAll(async () => {
     await server.stop();
-    await scheduler.stop();
+    scheduler.stop();
   });
 
   test('should get signed message', async () => {
