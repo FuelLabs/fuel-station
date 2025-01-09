@@ -1,5 +1,12 @@
 import axios from 'axios';
-import { Address, bn, type Coin, type ScriptTransactionRequest } from 'fuels';
+import {
+  Address,
+  bn,
+  InputType,
+  type Coin,
+  type InputCoin,
+  type ScriptTransactionRequest,
+} from 'fuels';
 import { findInputCoinTypeCoin } from '../utils';
 
 export class gasStationClient {
@@ -52,12 +59,16 @@ export class gasStationClient {
       jobId,
     });
 
-    const gasCoinInput = findInputCoinTypeCoin(
-      // @ts-ignore: This should work, although we need to change this util's interface
-      transaction,
-      gasCoin.owner,
-      gasCoin.assetId
-    );
+    const gasCoinInput = transaction.inputs.find((input) => {
+      if (input.type === InputType.Coin) {
+        return (
+          input.owner === gasCoin.owner.toB256() &&
+          input.assetId === gasCoin.assetId
+        );
+      }
+
+      return false;
+    }) as InputCoin | undefined;
 
     // we should never reach this branch of code
     if (!gasCoinInput) {
