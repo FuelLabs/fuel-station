@@ -1,7 +1,7 @@
 import express from 'express';
 import type { FuelClient, SupabaseDB } from '..';
 import { envSchema } from '../schema/config';
-import type { Wallet } from 'fuels';
+import type { BN, Wallet } from 'fuels';
 import accounts from '../../../accounts.json';
 import type { SignRequest } from '../../types';
 import { readFileSync } from 'node:fs';
@@ -13,6 +13,7 @@ import {
   healthHandler,
   jobCompleteHandler,
 } from './handlers';
+import { metadataHandler } from './handlers/metadata';
 
 const MAX_VALUE_PER_COIN = '0x186A0';
 
@@ -37,6 +38,7 @@ export type GasStationServerConfig = {
   funderWallet: Wallet;
   isHttps: boolean;
   policyHandlers: PolicyHandler[];
+  maxValuePerCoin: BN;
 };
 
 export class GasStationServer {
@@ -61,6 +63,7 @@ export class GasStationServer {
       funderWallet,
       isHttps,
       policyHandlers,
+      maxValuePerCoin,
     } = this.config;
 
     console.log('isHttps', isHttps);
@@ -70,6 +73,7 @@ export class GasStationServer {
     app.locals.ENV = ENV;
     app.locals.accounts = accounts;
     app.locals.policyHandlers = policyHandlers;
+    app.locals.maxValuePerCoin = maxValuePerCoin;
 
     const options = isHttps
       ? {
@@ -83,6 +87,8 @@ export class GasStationServer {
     app.use(express.json());
 
     app.get('/health', healthHandler);
+
+    app.get('/metadata', metadataHandler);
 
     app.post(
       '/allocate-coin',
