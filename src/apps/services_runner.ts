@@ -4,14 +4,13 @@ import { SchedulerService } from '../lib/services/scheduler';
 import {
   AccountsUnlockManager,
   FundingManager,
+  schedulerSetup,
   SmallCoinsManager,
-} from '../services';
+} from '../lib/services';
 import type { Database } from '../types';
 import { Provider, Wallet } from 'fuels';
 
 const main = async () => {
-  const scheduler = new SchedulerService();
-
   const env = envSchema.parse(process.env);
 
   console.log('ENV', env.ENV);
@@ -34,35 +33,7 @@ const main = async () => {
     minimumCoinValue: env.MINIMUM_COIN_VALUE,
   });
 
-  scheduler.addRoutine(
-    new AccountsUnlockManager({
-      supabaseDB,
-      name: 'AccountsUnlockManager',
-      // 5 seconds
-      intervalMs: 5000,
-    })
-  );
-
-  scheduler.addRoutine(
-    new FundingManager({
-      supabaseDB,
-      fuelClient,
-      name: 'FundingManager',
-      // 10 seconds
-      intervalMs: 10000,
-      env,
-    })
-  );
-
-  scheduler.addRoutine(
-    new SmallCoinsManager({
-      fuelClient,
-      name: 'SmallCoinsManager',
-      // 1 hour
-      intervalMs: 60 * 60 * 1000,
-      env,
-    })
-  );
+  const scheduler = schedulerSetup({ supabaseDB, fuelClient, env });
 
   await scheduler.start();
 };

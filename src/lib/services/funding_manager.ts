@@ -1,6 +1,6 @@
 import { sleep } from 'bun';
-import type { EnvConfig, FuelClient, SupabaseDB } from '../lib';
-import { RoutineJob } from '../lib/services/routine';
+import type { EnvConfig, FuelClient, SupabaseDB } from '..';
+import { RoutineJob } from './routine';
 
 /// This routine checks for all accounts that are not funded and funds them
 export class FundingManager extends RoutineJob {

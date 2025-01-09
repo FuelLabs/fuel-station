@@ -1,4 +1,4 @@
-import { RoutineJob, type SupabaseDB } from '../lib/index';
+import { RoutineJob, type SupabaseDB } from '../index';
 
 export class AccountsUnlockManager extends RoutineJob {
   private supabaseDB: SupabaseDB;
