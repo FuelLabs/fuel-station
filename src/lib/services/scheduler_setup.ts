@@ -1,17 +1,17 @@
-import type { SupabaseDB } from '../db';
 import type { FuelClient } from '../fuel';
 import type { EnvConfig } from '../schema/config';
 import { AccountsUnlockManager } from './accounts_unlock_manager';
 import { FundingManager } from './funding_manager';
 import { SchedulerService } from './scheduler';
 import { SmallCoinsManager } from './small_coins_manager';
+import type { Database } from '../db/database';
 
 export const schedulerSetup = ({
-  supabaseDB,
+  database,
   fuelClient,
   env,
 }: {
-  supabaseDB: SupabaseDB;
+  database: Database;
   fuelClient: FuelClient;
   env: EnvConfig;
 }) => {
@@ -19,7 +19,7 @@ export const schedulerSetup = ({
 
   scheduler.addRoutine(
     new AccountsUnlockManager({
-      supabaseDB,
+      database,
       name: 'AccountsUnlockManager',
       // 5 seconds
       intervalMs: 5000,
@@ -28,7 +28,7 @@ export const schedulerSetup = ({
 
   scheduler.addRoutine(
     new FundingManager({
-      supabaseDB,
+      database,
       fuelClient,
       name: 'FundingManager',
       // 10 seconds

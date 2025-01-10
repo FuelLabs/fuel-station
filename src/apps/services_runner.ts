@@ -33,7 +33,7 @@ const main = async () => {
     minimumCoinValue: env.MINIMUM_COIN_VALUE,
   });
 
-  const scheduler = schedulerSetup({ supabaseDB, fuelClient, env });
+  const scheduler = schedulerSetup({ database: supabaseDB, fuelClient, env });
 
   await scheduler.start();
 };

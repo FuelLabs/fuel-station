@@ -10,7 +10,7 @@ export const jobCompleteHandler = async (
 ) => {
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
   const config = req.app.locals.config as GasStationServerConfig;
-  const { supabaseDB } = config;
+  const { database: supabaseDB } = config;
 
   const { jobId, txnHash } = req.params;
 

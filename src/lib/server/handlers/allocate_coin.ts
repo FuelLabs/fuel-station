@@ -15,7 +15,7 @@ export const allocateCoinHandler = async (
   const config = req.app.locals.config as GasStationServerConfig;
   const ENV = req.app.locals.ENV as Zod.infer<typeof envSchema>;
 
-  const { supabaseDB, fuelClient } = config;
+  const { database: supabaseDB, fuelClient } = config;
 
   let coin: Coin | null = null;
   let address: string | null = null;

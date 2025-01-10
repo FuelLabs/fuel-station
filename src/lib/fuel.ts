@@ -110,7 +110,13 @@ export class FuelClient {
   }
 
   async fundAccount(walletAddress: string, amount: number): Promise<void> {
-    await this.funderWallet.transfer(walletAddress, amount);
+    try {
+      await this.funderWallet.transfer(walletAddress, amount);
+    } catch (err) {
+      console.log('error here');
+      console.log('funder wallet provider', this.funderWallet.provider);
+      throw err;
+    }
   }
 
   getMinimumCoinValue(): number {
