@@ -39,6 +39,7 @@ const main = async () => {
     'reciever balance before:',
     await provider.getBalance(randomReciever.address, assetId.bits)
   );
+
   const txResult = await (
     await gasStationClient.sendTransaction({
       transaction: request,

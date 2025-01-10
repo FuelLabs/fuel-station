@@ -61,7 +61,7 @@ export class GasStationServer {
 
     const { port, isHttps } = this.config;
 
-    app.locals.config = this.config;
+    app.locals.config = { ...this.config, policyHandlers: this.policyHandlers };
     app.locals.accounts = accounts;
     app.locals.ENV = ENV;
 
