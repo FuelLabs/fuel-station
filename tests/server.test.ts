@@ -106,10 +106,13 @@ describe('server', async () => {
       txCreatedIdx: bn(coin.txCreatedIdx),
     };
 
-    console.log('gasCoin', gasCoin);
-
     const scriptTransaction = new ScriptTransactionRequest();
     scriptTransaction.addCoinInput(gasCoin);
+    scriptTransaction.addCoinOutput(
+      Address.fromAddressOrString(gasCoin.owner),
+      gasCoin.amount.sub(maxValuePerCoin),
+      gasCoin.assetId
+    );
 
     const payload = { request: scriptTransaction.toJSON(), jobId };
 
