@@ -3,11 +3,12 @@ import type { Database } from '../../types/database.types';
 import type { JobStatus } from '../../types';
 import { ACCOUNT_TABLE_NAME, JOB_TABLE_NAME } from '../../constants';
 import { envSchema } from '../schema/config';
+import type { Database as DatabaseInterface } from './database';
 
 const env = envSchema.parse(process.env);
 
 // TODO: We need to create a DB intefrace which SupabaseDB will implement
-export class SupabaseDB {
+export class SupabaseDB implements DatabaseInterface {
   constructor(private supabaseClient: SupabaseClient<Database>) {}
 
   async getTotatAccountsCount(): Promise<number> {
