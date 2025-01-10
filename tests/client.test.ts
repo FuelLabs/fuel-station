@@ -32,7 +32,6 @@ describe('client', async () => {
     fuelClient: fuelClient,
     funderWallet: funderWallet,
     isHttps: false,
-    policyHandlers: [],
     maxValuePerCoin,
   };
 
@@ -49,7 +48,8 @@ describe('client', async () => {
 
   test('prepare gasless transaction', async () => {
     const client = new GasStationClient(
-      `http://localhost:${serverConfig.port}`
+      `http://localhost:${serverConfig.port}`,
+      fuelProvider
     );
 
     const transaction = new ScriptTransactionRequest();

@@ -5,15 +5,17 @@ import type { SupabaseDB } from '../../db';
 import type { FuelClient } from '../../fuel';
 import { AllocateCoinResponseSchema } from '../../schema/api';
 import type { envSchema } from '../../schema/config';
+import type { GasStationServerConfig } from '../server';
 
 export const allocateCoinHandler = async (
   req: Request,
   res: AllocateCoinResponse
 ) => {
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
-  const supabaseDB = req.app.locals.supabaseDB as SupabaseDB;
-  const fuelClient = req.app.locals.fuelClient as FuelClient;
+  const config = req.app.locals.config as GasStationServerConfig;
   const ENV = req.app.locals.ENV as Zod.infer<typeof envSchema>;
+
+  const { supabaseDB, fuelClient } = config;
 
   let coin: Coin | null = null;
   let address: string | null = null;

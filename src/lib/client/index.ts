@@ -7,8 +7,7 @@ import {
   type Coin,
   type InputCoin,
   type ScriptTransactionRequest,
-  WalletLocked,
-  WalletUnlocked,
+  type WalletUnlocked,
 } from 'fuels';
 
 export class GasStationClient {
