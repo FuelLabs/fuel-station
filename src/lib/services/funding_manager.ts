@@ -1,20 +1,21 @@
 import { sleep } from 'bun';
 import type { EnvConfig, FuelClient, SupabaseDB } from '..';
 import { RoutineJob } from './routine';
+import type { Database } from '../db/database';
 
 /// This routine checks for all accounts that are not funded and funds them
 export class FundingManager extends RoutineJob {
-  private supabaseDB: SupabaseDB;
+  private database: Database;
   private fuelClient: FuelClient;
   private env: EnvConfig;
   constructor({
-    supabaseDB,
+    database,
     fuelClient,
     name,
     intervalMs,
     env,
   }: {
-    supabaseDB: SupabaseDB;
+    database: Database;
     fuelClient: FuelClient;
     name: string;
     intervalMs: number;
@@ -22,7 +23,7 @@ export class FundingManager extends RoutineJob {
   }) {
     super(name, intervalMs);
 
-    this.supabaseDB = supabaseDB;
+    this.database = database;
     this.fuelClient = fuelClient;
     this.env = env;
   }
@@ -34,7 +35,7 @@ export class FundingManager extends RoutineJob {
 
     // We first fetch all accounts which need funding
     const accountsThatNeedFunding =
-      await this.supabaseDB.getAccountsThatNeedFunding();
+      await this.database.getAccountsThatNeedFunding();
 
     for (const walletAddress of accountsThatNeedFunding) {
       const coin = await this.fuelClient.getCoin(
@@ -58,7 +59,7 @@ export class FundingManager extends RoutineJob {
         await sleep(200);
       }
 
-      await this.supabaseDB.setAccountNeedsFunding(walletAddress, false);
+      await this.database.setAccountNeedsFunding(walletAddress, false);
     }
   }
 }

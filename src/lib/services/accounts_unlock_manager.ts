@@ -1,19 +1,20 @@
+import type { Database } from '../db/database';
 import { RoutineJob, type SupabaseDB } from '../index';
 
 export class AccountsUnlockManager extends RoutineJob {
-  private supabaseDB: SupabaseDB;
+  private database: Database;
   constructor({
-    supabaseDB,
+    database,
     name,
     intervalMs,
   }: {
-    supabaseDB: SupabaseDB;
+    database: Database;
     name: string;
     intervalMs: number;
   }) {
     super(name, intervalMs);
 
-    this.supabaseDB = supabaseDB;
+    this.database = database;
   }
 
   async execute() {
@@ -21,11 +22,11 @@ export class AccountsUnlockManager extends RoutineJob {
 
     console.log('executing routine: ', this.name);
 
-    const lockedAccounts = await this.supabaseDB.getLockedAccounts();
+    const lockedAccounts = await this.database.getLockedAccounts();
 
     for (const account of lockedAccounts) {
       const { account: accountData, error: accountError } =
-        await this.supabaseDB.getAccount(account);
+        await this.database.getAccount(account);
 
       if (accountError) {
         console.error(accountError);
@@ -34,7 +35,7 @@ export class AccountsUnlockManager extends RoutineJob {
 
       if (accountData.expiry && new Date(accountData.expiry) < new Date()) {
         console.log(`Unlocking account ${account}`);
-        await this.supabaseDB.unlockAccount(account);
+        await this.database.unlockAccount(account);
       }
     }
   }

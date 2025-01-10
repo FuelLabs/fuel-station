@@ -15,6 +15,7 @@ import {
   jobCompleteHandler,
 } from './handlers';
 import { metadataHandler } from './handlers/metadata';
+import type { Database } from '../db/database';
 
 const ENV = envSchema.parse(process.env);
 
@@ -22,7 +23,7 @@ console.log('ENV', ENV.ENV);
 
 export type GasStationServerConfig = {
   port: number;
-  supabaseDB: SupabaseDB;
+  database: Database;
   fuelClient: FuelClient;
   funderWallet: Wallet;
   isHttps: boolean;

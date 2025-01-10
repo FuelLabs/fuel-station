@@ -12,7 +12,7 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
   const config = req.app.locals.config as GasStationServerConfig & {
     policyHandlers: PolicyHandler[];
   };
-  const { supabaseDB, fuelClient, policyHandlers } = config;
+  const { database: supabaseDB, fuelClient, policyHandlers } = config;
 
   const accounts = req.app.locals.accounts as [
     { privateKey: string; address: string },
