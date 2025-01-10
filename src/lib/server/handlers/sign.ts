@@ -5,16 +5,16 @@ import type { FuelClient } from '../../fuel';
 import { ScriptRequestSignSchema } from '../../schema/api';
 import type { envSchema } from '../../schema/config';
 import { setRequestFields } from '../../utils';
-import type { PolicyHandler } from '../server';
+import type { GasStationServerConfig, PolicyHandler } from '../server';
 
 export const signHandler = async (req: SignRequest, res: SignResponse) => {
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
-  const supabaseDB = req.app.locals.supabaseDB as SupabaseDB;
-  const fuelClient = req.app.locals.fuelClient as FuelClient;
+  const config = req.app.locals.config as GasStationServerConfig;
+  const { supabaseDB, fuelClient, policyHandlers } = config;
+
   const accounts = req.app.locals.accounts as [
     { privateKey: string; address: string },
   ];
-  const policyHandlers = req.app.locals.policyHandlers as PolicyHandler[];
   const ENV = req.app.locals.env as Zod.infer<typeof envSchema>;
 
   const { success, error, data } = ScriptRequestSignSchema.safeParse(req.body);
@@ -79,7 +79,7 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
     const error = await policyHandler({
       transactionRequest: scriptRequest,
       job,
-      env: ENV,
+      config,
       fuelClient,
     });
 

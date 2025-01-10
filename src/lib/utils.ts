@@ -5,7 +5,7 @@ import type {
   OutputChangeSchema,
   OutputCoinSchema,
 } from '../lib/schema/api';
-import type { ScriptTransactionRequest } from 'fuels';
+import { OutputType, type ScriptTransactionRequest } from 'fuels';
 
 export const findOutputCoinTypeCoin = (
   scriptRequest: ScriptRequest,
@@ -14,8 +14,10 @@ export const findOutputCoinTypeCoin = (
 ): z.infer<typeof OutputCoinSchema> | null => {
   const outputCoinsBelongingToAccount = scriptRequest.outputs.filter(
     (output) => {
-      if (output.to === owner) {
-        return true;
+      if (output.type === OutputType.Coin) {
+        if (output.to === owner) {
+          return true;
+        }
       }
     }
   );

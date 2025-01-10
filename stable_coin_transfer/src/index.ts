@@ -29,7 +29,6 @@ const main = async () => {
     fuelClient: fuelClient,
     funderWallet: funderWallet,
     isHttps: false,
-    policyHandlers: [],
     maxValuePerCoin: bn(1000),
   };
 

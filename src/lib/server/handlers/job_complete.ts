@@ -1,5 +1,6 @@
 import type { TypedRequest, TypedResponse } from '../../../types';
 import type { SupabaseDB } from '../../db';
+import type { GasStationServerConfig } from '../server';
 
 export const jobCompleteHandler = async (
   req: TypedRequest<{
@@ -8,7 +9,8 @@ export const jobCompleteHandler = async (
   res: TypedResponse<{ error: string } | { status: 'success' }>
 ) => {
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
-  const supabaseDB = req.app.locals.supabaseDB as SupabaseDB;
+  const config = req.app.locals.config as GasStationServerConfig;
+  const { supabaseDB } = config;
 
   const { jobId, txnHash } = req.params;
 

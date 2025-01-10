@@ -1,5 +1,6 @@
-import express from 'express';
+import express, { application } from 'express';
 import type { FuelClient, SupabaseDB } from '..';
+import { onlyOneInputCoinPolicy, spendingCheckPolicy } from './policies';
 import { envSchema } from '../schema/config';
 import type { BN, Wallet } from 'fuels';
 import accounts from '../../../accounts.json';
@@ -15,21 +16,9 @@ import {
 } from './handlers';
 import { metadataHandler } from './handlers/metadata';
 
-const MAX_VALUE_PER_COIN = '0x186A0';
-
 const ENV = envSchema.parse(process.env);
 
 console.log('ENV', ENV.ENV);
-
-export type PolicyHandler = (ctx: {
-  transactionRequest: SignRequest['body']['request'];
-  job: {
-    address: string;
-    expiry: string;
-  };
-  env: Zod.infer<typeof envSchema>;
-  fuelClient: FuelClient;
-}) => Promise<Error | null>;
 
 export type GasStationServerConfig = {
   port: number;
@@ -37,43 +26,46 @@ export type GasStationServerConfig = {
   fuelClient: FuelClient;
   funderWallet: Wallet;
   isHttps: boolean;
-  policyHandlers: PolicyHandler[];
   maxValuePerCoin: BN;
 };
+
+export type PolicyHandler = (ctx: {
+  transactionRequest: SignRequest['body']['request'];
+  job: {
+    address: string;
+    expiry: string;
+  };
+  fuelClient: FuelClient;
+  config: GasStationServerConfig;
+}) => Promise<Error | null>;
 
 export class GasStationServer {
   private config: GasStationServerConfig;
   private server: https.Server | http.Server | null = null;
+  policyHandlers: PolicyHandler[] = [];
 
   constructor(config: GasStationServerConfig) {
     this.config = config;
 
-    if (!this.config.policyHandlers) {
-      this.config.policyHandlers = [];
-    }
+    // default policies added to protect the paymaster
+    this.addPolicyHandler(onlyOneInputCoinPolicy);
+    this.addPolicyHandler(spendingCheckPolicy);
+  }
+
+  addPolicyHandler(policyHandler: PolicyHandler) {
+    this.policyHandlers.push(policyHandler);
   }
 
   async start() {
     const app = express();
 
-    const {
-      port,
-      supabaseDB,
-      fuelClient,
-      funderWallet,
-      isHttps,
-      policyHandlers,
-      maxValuePerCoin,
-    } = this.config;
+    const { port, isHttps } = this.config;
+
+    app.locals.config = this.config;
+    app.locals.accounts = accounts;
+    app.locals.ENV = ENV;
 
     console.log('isHttps', isHttps);
-
-    app.locals.supabaseDB = supabaseDB;
-    app.locals.fuelClient = fuelClient;
-    app.locals.ENV = ENV;
-    app.locals.accounts = accounts;
-    app.locals.policyHandlers = policyHandlers;
-    app.locals.maxValuePerCoin = maxValuePerCoin;
 
     const options = isHttps
       ? {

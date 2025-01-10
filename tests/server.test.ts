@@ -41,7 +41,6 @@ describe('server', async () => {
     fuelClient: fuelClient,
     funderWallet: funderWallet,
     isHttps: false,
-    policyHandlers: [],
     maxValuePerCoin,
   };
 
