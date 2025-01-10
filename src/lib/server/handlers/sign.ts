@@ -9,7 +9,9 @@ import type { GasStationServerConfig, PolicyHandler } from '../server';
 
 export const signHandler = async (req: SignRequest, res: SignResponse) => {
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
-  const config = req.app.locals.config as GasStationServerConfig;
+  const config = req.app.locals.config as GasStationServerConfig & {
+    policyHandlers: PolicyHandler[];
+  };
   const { supabaseDB, fuelClient, policyHandlers } = config;
 
   const accounts = req.app.locals.accounts as [
@@ -23,8 +25,6 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
     console.error(error);
     return res.status(400).json({ error: 'Invalid request body' });
   }
-
-  const baseAssetId = (await fuelClient.getProvider()).getBaseAssetId();
 
   console.log('req.body', data);
 
