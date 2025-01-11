@@ -4,14 +4,14 @@ import { AccountsUnlockManager } from './accounts_unlock_manager';
 import { FundingManager } from './funding_manager';
 import { SchedulerService } from './scheduler';
 import { SmallCoinsManager } from './small_coins_manager';
-import type { Database } from '../db/database';
+import type { FuelStationDatabase } from '../db/database';
 
 export const schedulerSetup = ({
   database,
   fuelClient,
   env,
 }: {
-  database: Database;
+  database: FuelStationDatabase;
   fuelClient: FuelClient;
   env: EnvConfig;
 }) => {
