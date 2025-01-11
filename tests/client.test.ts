@@ -39,7 +39,7 @@ describe('client', async () => {
   };
 
   const server = new GasStationServer(serverConfig);
-  const scheduler = schedulerSetup({ supabaseDB, fuelClient, env });
+  const scheduler = schedulerSetup({ database: supabaseDB, fuelClient, env });
 
   await server.start();
   await scheduler.start();
