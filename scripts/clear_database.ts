@@ -22,7 +22,7 @@ const main = async () => {
   const { error: jobsError } = await supabase
     .from(JOB_TABLE_NAME)
     .delete()
-    .gt('id', -1);
+    .neq('job_id', ''); // Delete all rows by using a condition that's always true
 
   if (jobsError) {
     console.error('Error deleting jobs:', jobsError);

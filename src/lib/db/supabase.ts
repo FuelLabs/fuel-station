@@ -107,11 +107,7 @@ export class SupabaseDB implements DatabaseInterface {
   // $$ LANGUAGE sql;
   async getNextAccount(): Promise<string | null> {
     const { data, error } = await this.supabaseClient.rpc(
-      env.ENV === 'local'
-        ? 'get_random_next_records_local'
-        : env.ENV === 'testnet'
-          ? 'get_random_next_records_testnet'
-          : 'get_random_next_records_mainnet'
+      'get_random_next_record'
     );
 
     if (error) {

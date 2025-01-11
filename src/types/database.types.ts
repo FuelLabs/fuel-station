@@ -11,168 +11,48 @@ export type Database = {
     Tables: {
       accounts: {
         Row: {
-          address: string;
+          address: string | null;
           expiry: string | null;
           id: number;
-          is_locked: boolean;
+          is_locked: boolean | null;
           needs_funding: boolean | null;
         };
         Insert: {
-          address?: string;
+          address?: string | null;
           expiry?: string | null;
-          id?: number;
-          is_locked: boolean;
+          id?: never;
+          is_locked?: boolean | null;
           needs_funding?: boolean | null;
         };
         Update: {
-          address?: string;
+          address?: string | null;
           expiry?: string | null;
-          id?: number;
-          is_locked?: boolean;
+          id?: never;
+          is_locked?: boolean | null;
           needs_funding?: boolean | null;
         };
         Relationships: [];
       };
-      accounts_local: {
+      jobs: {
         Row: {
-          address: string;
+          address: string | null;
           expiry: string | null;
-          id: number;
-          is_locked: boolean;
-          needs_funding: boolean | null;
-        };
-        Insert: {
-          address?: string;
-          expiry?: string | null;
-          id?: number;
-          is_locked: boolean;
-          needs_funding?: boolean | null;
-        };
-        Update: {
-          address?: string;
-          expiry?: string | null;
-          id?: number;
-          is_locked?: boolean;
-          needs_funding?: boolean | null;
-        };
-        Relationships: [];
-      };
-      accounts_mainnet: {
-        Row: {
-          address: string;
-          expiry: string | null;
-          id: number;
-          is_locked: boolean;
-          needs_funding: boolean | null;
-        };
-        Insert: {
-          address?: string;
-          expiry?: string | null;
-          id?: number;
-          is_locked: boolean;
-          needs_funding?: boolean | null;
-        };
-        Update: {
-          address?: string;
-          expiry?: string | null;
-          id?: number;
-          is_locked?: boolean;
-          needs_funding?: boolean | null;
-        };
-        Relationships: [];
-      };
-      accounts_testnet: {
-        Row: {
-          address: string;
-          expiry: string | null;
-          id: number;
-          is_locked: boolean;
-          needs_funding: boolean | null;
-        };
-        Insert: {
-          address?: string;
-          expiry?: string | null;
-          id?: number;
-          is_locked: boolean;
-          needs_funding?: boolean | null;
-        };
-        Update: {
-          address?: string;
-          expiry?: string | null;
-          id?: number;
-          is_locked?: boolean;
-          needs_funding?: boolean | null;
-        };
-        Relationships: [];
-      };
-      jobs_local: {
-        Row: {
-          address: string;
-          expiry: string;
           job_id: string;
-          job_status: string;
+          job_status: string | null;
           txn_hash: string | null;
         };
         Insert: {
-          address?: string;
-          expiry: string;
+          address?: string | null;
+          expiry?: string | null;
           job_id: string;
-          job_status?: string;
+          job_status?: string | null;
           txn_hash?: string | null;
         };
         Update: {
-          address?: string;
-          expiry?: string;
+          address?: string | null;
+          expiry?: string | null;
           job_id?: string;
-          job_status?: string;
-          txn_hash?: string | null;
-        };
-        Relationships: [];
-      };
-      jobs_mainnet: {
-        Row: {
-          address: string;
-          expiry: string;
-          job_id: string;
-          job_status: string;
-          txn_hash: string | null;
-        };
-        Insert: {
-          address?: string;
-          expiry: string;
-          job_id: string;
-          job_status?: string;
-          txn_hash?: string | null;
-        };
-        Update: {
-          address?: string;
-          expiry?: string;
-          job_id?: string;
-          job_status?: string;
-          txn_hash?: string | null;
-        };
-        Relationships: [];
-      };
-      jobs_testnet: {
-        Row: {
-          address: string;
-          expiry: string;
-          job_id: string;
-          job_status: string;
-          txn_hash: string | null;
-        };
-        Insert: {
-          address?: string;
-          expiry: string;
-          job_id: string;
-          job_status?: string;
-          txn_hash?: string | null;
-        };
-        Update: {
-          address?: string;
-          expiry?: string;
-          job_id?: string;
-          job_status?: string;
+          job_status?: string | null;
           txn_hash?: string | null;
         };
         Relationships: [];
@@ -182,30 +62,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      get_random_next_records: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          like: unknown;
-        }[];
-      };
-      get_random_next_records_local: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          like: unknown;
-        }[];
-      };
-      get_random_next_records_mainnet: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          like: unknown;
-        }[];
-      };
-      get_random_next_records_testnet: {
-        Args: Record<PropertyKey, never>;
-        Returns: {
-          like: unknown;
-        }[];
-      };
+      [_ in never]: never;
     };
     Enums: {
       [_ in never]: never;
