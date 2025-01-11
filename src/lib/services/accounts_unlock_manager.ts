@@ -1,14 +1,14 @@
-import type { Database } from '../db/database';
+import type { FuelStationDatabase } from '../db/database';
 import { RoutineJob, type SupabaseDB } from '../index';
 
 export class AccountsUnlockManager extends RoutineJob {
-  private database: Database;
+  private database: FuelStationDatabase;
   constructor({
     database,
     name,
     intervalMs,
   }: {
-    database: Database;
+    database: FuelStationDatabase;
     name: string;
     intervalMs: number;
   }) {

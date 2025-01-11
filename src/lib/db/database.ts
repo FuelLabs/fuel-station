@@ -5,7 +5,7 @@ import type { JobStatus } from '../../types';
  * Interface for all database implementations
  * This provides a contract that all database implementations must follow
  */
-export interface Database {
+export interface FuelStationDatabase {
   /**
    * Get total number of accounts in the database
    */

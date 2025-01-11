@@ -1,11 +1,11 @@
 import { sleep } from 'bun';
 import type { EnvConfig, FuelClient, SupabaseDB } from '..';
 import { RoutineJob } from './routine';
-import type { Database } from '../db/database';
+import type { FuelStationDatabase } from '../db/database';
 
 /// This routine checks for all accounts that are not funded and funds them
 export class FundingManager extends RoutineJob {
-  private database: Database;
+  private database: FuelStationDatabase;
   private fuelClient: FuelClient;
   private env: EnvConfig;
   constructor({
@@ -15,7 +15,7 @@ export class FundingManager extends RoutineJob {
     intervalMs,
     env,
   }: {
-    database: Database;
+    database: FuelStationDatabase;
     fuelClient: FuelClient;
     name: string;
     intervalMs: number;

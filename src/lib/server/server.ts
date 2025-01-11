@@ -15,7 +15,7 @@ import {
   jobCompleteHandler,
 } from './handlers';
 import { metadataHandler } from './handlers/metadata';
-import type { Database } from '../db/database';
+import type { FuelStationDatabase } from '../db/database';
 
 const ENV = envSchema.parse(process.env);
 
@@ -23,7 +23,7 @@ console.log('ENV', ENV.ENV);
 
 export type GasStationServerConfig = {
   port: number;
-  database: Database;
+  database: FuelStationDatabase;
   fuelClient: FuelClient;
   funderWallet: Wallet;
   isHttps: boolean;
