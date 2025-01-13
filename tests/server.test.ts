@@ -5,6 +5,7 @@ import {
   envSchema,
   FuelClient,
   GasStationServer,
+  generateMnemonicWallets,
   schedulerSetup,
   SupabaseDB,
 } from '../src/lib';
@@ -18,7 +19,6 @@ import {
   type Coin,
 } from 'fuels';
 import axios from 'axios';
-import accounts from '../accounts.json';
 
 describe('server', async () => {
   const maxValuePerCoin = bn(10000);
@@ -38,6 +38,12 @@ describe('server', async () => {
     minimumCoinValue: env.MINIMUM_COIN_VALUE,
   });
 
+  const accounts = generateMnemonicWallets(
+    env.FUEL_PAYMASTER_MNEMONIC,
+    env.NUM_OF_ACCOUNTS,
+    fuelProvider
+  );
+
   const serverConfig: GasStationServerConfig = {
     port: 3000,
     database: supabaseDB,
@@ -45,15 +51,17 @@ describe('server', async () => {
     funderWallet: funderWallet,
     isHttps: false,
     maxValuePerCoin,
+    accounts,
   };
 
   const server = new GasStationServer(serverConfig);
-  const scheduler = schedulerSetup({
+  const scheduler = await schedulerSetup({
     database: supabaseDB,
     fuelClient,
     funderWallet,
     minimumCoinValue: env.MINIMUM_COIN_VALUE,
     fundingAmount: env.FUNDING_AMOUNT,
+    accounts,
   });
 
   await server.start();
@@ -136,7 +144,10 @@ describe('server', async () => {
     const recievedSignature = data.signature;
 
     const account = accounts.find((account) => {
-      return account.address === gasCoin.owner.toB256();
+      return (
+        account.address.toB256().toLowerCase() ===
+        gasCoin.owner.toB256().toLowerCase()
+      );
     });
 
     if (!account) {

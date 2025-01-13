@@ -12,15 +12,22 @@ export type SchedulerConfig = {
   funderWallet: WalletUnlocked;
   minimumCoinValue: number;
   fundingAmount: number;
+  accounts: WalletUnlocked[];
 };
 
-export const schedulerSetup = ({
+export const schedulerSetup = async ({
   database,
   fuelClient,
   funderWallet,
   minimumCoinValue,
   fundingAmount,
+  accounts,
 }: SchedulerConfig) => {
+  // upsert all accounts to the database
+  await database.insertAccounts(
+    accounts.map((account) => account.address.toB256())
+  );
+
   const scheduler = new SchedulerService();
 
   scheduler.addRoutine(
@@ -52,6 +59,7 @@ export const schedulerSetup = ({
       intervalMs: 60 * 60 * 1000,
       funderWallet,
       minimumCoinValue,
+      accounts,
     })
   );
 

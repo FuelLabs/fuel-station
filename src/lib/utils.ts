@@ -8,8 +8,9 @@ import type {
 import {
   OutputType,
   Wallet,
-  WalletUnlocked,
+  type WalletUnlocked,
   type ScriptTransactionRequest,
+  Provider,
 } from 'fuels';
 
 export const findOutputCoinTypeCoin = (
@@ -138,7 +139,8 @@ export const setRequestFields = (
 
 export const generateMnemonicWallets = (
   mnemonic: string,
-  numOfAccounts: number
+  numOfAccounts: number,
+  fuelProvider?: Provider
 ) => {
   const wallets: WalletUnlocked[] = [];
 
@@ -148,6 +150,11 @@ export const generateMnemonicWallets = (
       mnemonic,
       derivationPath
     );
+
+    if (fuelProvider) {
+      wallet.provider = fuelProvider;
+    }
+
     wallets.push(wallet);
   }
 
