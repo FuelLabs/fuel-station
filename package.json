@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "bun src/apps/server.ts",
+    "generate-mnemonic": "bun scripts/generate_mnemonic.ts",
     "start:local": "bun --env-file=.env.local src/apps/server.ts",
     "start:testnet": "bun --env-file=.env.testnet src/apps/server.ts",
     "start:mainnet": "bun --env-file=.env.mainnet src/apps/server.ts",
