@@ -3,6 +3,7 @@ import {
   envSchema,
   FuelClient,
   GasStationServer,
+  generateMnemonicWallets,
   schedulerSetup,
   SupabaseDB,
   type GasStationServerConfig,
@@ -15,13 +16,22 @@ const main = async () => {
   const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
   const database = new SupabaseDB(supabaseClient);
   const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
-  const funderWallet = Wallet.fromPrivateKey(env.FUEL_FUNDER_PRIVATE_KEY);
+  const funderWallet = Wallet.fromPrivateKey(
+    env.FUEL_FUNDER_PRIVATE_KEY,
+    fuelProvider
+  );
 
   const fuelClient = new FuelClient({
     provider: fuelProvider,
     funderWallet: funderWallet,
     minimumCoinValue: env.MINIMUM_COIN_VALUE,
   });
+
+  const accounts = generateMnemonicWallets(
+    env.FUEL_PAYMASTER_MNEMONIC,
+    env.NUM_OF_ACCOUNTS,
+    fuelProvider
+  );
 
   const serverConfig: GasStationServerConfig = {
     port: 3000,
@@ -30,15 +40,17 @@ const main = async () => {
     funderWallet,
     isHttps: false,
     maxValuePerCoin: bn(1000),
+    accounts,
   };
 
   const server = new GasStationServer(serverConfig);
-  const scheduler = schedulerSetup({
+  const scheduler = await schedulerSetup({
     database,
     fuelClient,
     funderWallet,
     minimumCoinValue: env.MINIMUM_COIN_VALUE,
     fundingAmount: env.FUNDING_AMOUNT,
+    accounts,
   });
 
   await server.start();

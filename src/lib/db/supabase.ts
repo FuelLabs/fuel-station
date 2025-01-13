@@ -90,7 +90,7 @@ export class SupabaseDB implements FuelStationDatabase {
     const entries = addresses.map((address) => ({ address, is_locked: false }));
     const { error } = await this.supabaseClient
       .from(ACCOUNT_TABLE_NAME)
-      .insert(entries);
+      .upsert(entries);
 
     if (error) {
       throw error;

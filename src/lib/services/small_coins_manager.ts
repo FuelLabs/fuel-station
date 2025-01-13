@@ -1,7 +1,6 @@
 import { sleep } from 'bun';
-import type { FuelClient, SupabaseDB, EnvConfig } from '..';
+import type { FuelClient } from '..';
 import { RoutineJob } from '../index';
-import accounts from '../../../accounts.json';
 import {
   bn,
   ScriptTransactionRequest,
@@ -14,6 +13,7 @@ export class SmallCoinsManager extends RoutineJob {
   private fuelClient: FuelClient;
   private funderWallet: WalletUnlocked;
   private minimumCoinValue: number;
+  private accounts: WalletUnlocked[];
 
   constructor({
     fuelClient,
@@ -21,18 +21,21 @@ export class SmallCoinsManager extends RoutineJob {
     intervalMs,
     funderWallet,
     minimumCoinValue,
+    accounts,
   }: {
     fuelClient: FuelClient;
     name: string;
     intervalMs: number;
     minimumCoinValue: number;
     funderWallet: WalletUnlocked;
+    accounts: WalletUnlocked[];
   }) {
     super(name, intervalMs);
 
     this.fuelClient = fuelClient;
     this.funderWallet = funderWallet;
     this.minimumCoinValue = minimumCoinValue;
+    this.accounts = accounts;
   }
 
   async execute() {
@@ -40,13 +43,13 @@ export class SmallCoinsManager extends RoutineJob {
 
     console.log('executing routine: ', this.name);
 
-    for (const account of accounts) {
+    for (const account of this.accounts) {
       const provider = await this.fuelClient.getProvider();
 
       const accountWallet = Wallet.fromPrivateKey(account.privateKey, provider);
 
       let coins = await this.fuelClient.getSmallCoins(
-        account.address,
+        accountWallet.address.toB256(),
         this.minimumCoinValue
       );
 

@@ -2,8 +2,7 @@ import express, { application } from 'express';
 import type { FuelClient, SupabaseDB } from '..';
 import { onlyOneInputCoinPolicy, spendingCheckPolicy } from './policies';
 import { envSchema } from '../schema/config';
-import type { BN, Wallet } from 'fuels';
-import accounts from '../../../accounts.json';
+import type { BN, Wallet, WalletUnlocked } from 'fuels';
 import type { SignRequest } from '../../types';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
@@ -28,6 +27,7 @@ export type GasStationServerConfig = {
   funderWallet: Wallet;
   isHttps: boolean;
   maxValuePerCoin: BN;
+  accounts: WalletUnlocked[];
 };
 
 export type PolicyHandler = (ctx: {
@@ -63,7 +63,6 @@ export class GasStationServer {
     const { port, isHttps } = this.config;
 
     app.locals.config = { ...this.config, policyHandlers: this.policyHandlers };
-    app.locals.accounts = accounts;
     app.locals.ENV = ENV;
 
     console.log('isHttps', isHttps);

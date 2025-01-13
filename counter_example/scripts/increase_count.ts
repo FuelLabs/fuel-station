@@ -3,7 +3,6 @@ import { envSchema } from '../../src/lib';
 import { contractId } from '../deployments.json';
 import { Contracts } from '../out/index';
 import axios from 'axios';
-import accounts from '../../accounts.json';
 
 const main = async () => {
   const env = envSchema.parse(process.env);

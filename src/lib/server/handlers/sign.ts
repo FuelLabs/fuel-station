@@ -12,12 +12,7 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
   const config = req.app.locals.config as GasStationServerConfig & {
     policyHandlers: PolicyHandler[];
   };
-  const { database: supabaseDB, fuelClient, policyHandlers } = config;
-
-  const accounts = req.app.locals.accounts as [
-    { privateKey: string; address: string },
-  ];
-  const ENV = req.app.locals.env as Zod.infer<typeof envSchema>;
+  const { database: supabaseDB, fuelClient, policyHandlers, accounts } = config;
 
   const { success, error, data } = ScriptRequestSignSchema.safeParse(req.body);
 
@@ -69,7 +64,15 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
     return res.status(400).json({ error: 'Job expired' });
   }
 
-  const account = accounts.find(({ address }) => address === job.address);
+  console.log(
+    'accounts',
+    accounts.map((account) => account.address.toB256())
+  );
+  console.log('job.address', job.address);
+  const account = accounts.find(
+    ({ address }) =>
+      address.toB256().toLowerCase() === job.address.toLowerCase()
+  );
   if (!account) {
     return res.status(404).json({ error: 'Account not found' });
   }
