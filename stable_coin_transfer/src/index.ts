@@ -33,7 +33,13 @@ const main = async () => {
   };
 
   const server = new GasStationServer(serverConfig);
-  const scheduler = schedulerSetup({ database, fuelClient, env });
+  const scheduler = schedulerSetup({
+    database,
+    fuelClient,
+    funderWallet,
+    minimumCoinValue: env.MINIMUM_COIN_VALUE,
+    fundingAmount: env.FUNDING_AMOUNT,
+  });
 
   await server.start();
   await scheduler.start();

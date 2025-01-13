@@ -7,25 +7,30 @@ import type { FuelStationDatabase } from '../db/database';
 export class FundingManager extends RoutineJob {
   private database: FuelStationDatabase;
   private fuelClient: FuelClient;
-  private env: EnvConfig;
+  private minimumCoinValue: number;
+  private fundingAmount: number;
+
   constructor({
     database,
     fuelClient,
     name,
     intervalMs,
-    env,
+    minimumCoinValue,
+    fundingAmount,
   }: {
     database: FuelStationDatabase;
     fuelClient: FuelClient;
     name: string;
     intervalMs: number;
-    env: EnvConfig;
+    minimumCoinValue: number;
+    fundingAmount: number;
   }) {
     super(name, intervalMs);
 
     this.database = database;
     this.fuelClient = fuelClient;
-    this.env = env;
+    this.minimumCoinValue = minimumCoinValue;
+    this.fundingAmount = fundingAmount;
   }
 
   async execute(): Promise<void> {
@@ -40,20 +45,15 @@ export class FundingManager extends RoutineJob {
     for (const walletAddress of accountsThatNeedFunding) {
       const coin = await this.fuelClient.getCoin(
         walletAddress,
-        this.env.MINIMUM_COIN_VALUE
+        this.minimumCoinValue
       );
 
       if (!coin) {
         console.log(`coin not found for ${walletAddress}, funding ...`);
 
-        await this.fuelClient.fundAccount(
-          walletAddress,
-          this.env.FUNDING_AMOUNT
-        );
+        await this.fuelClient.fundAccount(walletAddress, this.fundingAmount);
 
-        console.log(
-          `Funded ${walletAddress} with ${this.env.FUNDING_AMOUNT} coins`
-        );
+        console.log(`Funded ${walletAddress} with ${this.fundingAmount} coins`);
 
         // 200ms
         await sleep(200);

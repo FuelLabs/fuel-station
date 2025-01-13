@@ -18,10 +18,7 @@ describe('client', async () => {
   const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
   const supabaseDB = new SupabaseDB(supabaseClient);
   const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
-  const funderWallet = Wallet.fromPrivateKey(
-    env.FUEL_FUNDER_PRIVATE_KEY,
-    fuelProvider
-  );
+  const funderWallet = Wallet.fromPrivateKey(env.FUEL_FUNDER_PRIVATE_KEY);
 
   const fuelClient = new FuelClient({
     provider: fuelProvider,
@@ -39,7 +36,13 @@ describe('client', async () => {
   };
 
   const server = new GasStationServer(serverConfig);
-  const scheduler = schedulerSetup({ database: supabaseDB, fuelClient, env });
+  const scheduler = schedulerSetup({
+    database: supabaseDB,
+    fuelClient,
+    funderWallet,
+    minimumCoinValue: env.MINIMUM_COIN_VALUE,
+    fundingAmount: env.FUNDING_AMOUNT,
+  });
 
   await server.start();
   await scheduler.start();

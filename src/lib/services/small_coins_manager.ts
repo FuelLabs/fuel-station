@@ -2,34 +2,41 @@ import { sleep } from 'bun';
 import type { FuelClient, SupabaseDB, EnvConfig } from '..';
 import { RoutineJob } from '../index';
 import accounts from '../../../accounts.json';
-import { Address, bn, ScriptTransactionRequest, Wallet } from 'fuels';
+import {
+  bn,
+  ScriptTransactionRequest,
+  Wallet,
+  type WalletUnlocked,
+} from 'fuels';
 
 /// This routine looks for small coins in all accounts and if they exist, it sends them to a collector address
 export class SmallCoinsManager extends RoutineJob {
   private fuelClient: FuelClient;
-  private env: EnvConfig;
+  private funderWallet: WalletUnlocked;
+  private minimumCoinValue: number;
+
   constructor({
     fuelClient,
     name,
     intervalMs,
-    env,
+    funderWallet,
+    minimumCoinValue,
   }: {
     fuelClient: FuelClient;
     name: string;
     intervalMs: number;
-    env: EnvConfig;
+    minimumCoinValue: number;
+    funderWallet: WalletUnlocked;
   }) {
     super(name, intervalMs);
 
     this.fuelClient = fuelClient;
-    this.env = env;
+    this.funderWallet = funderWallet;
+    this.minimumCoinValue = minimumCoinValue;
   }
 
   async execute() {
     this.lastRun = new Date();
-    const funderWallet = Wallet.fromPrivateKey(
-      this.env.FUEL_FUNDER_PRIVATE_KEY
-    );
 
     console.log('executing routine: ', this.name);
 
@@ -40,7 +47,7 @@ export class SmallCoinsManager extends RoutineJob {
 
       let coins = await this.fuelClient.getSmallCoins(
         account.address,
-        this.env.MINIMUM_COIN_VALUE
+        this.minimumCoinValue
       );
 
       if (coins.length === 0) {
@@ -67,13 +74,13 @@ export class SmallCoinsManager extends RoutineJob {
       request.outputs = [];
 
       request.addCoinOutput(
-        funderWallet.address,
+        this.funderWallet.address,
         totalCoinValue,
         this.fuelClient.getBaseAssetId()
       );
 
       request.addChangeOutput(
-        funderWallet.address,
+        this.funderWallet.address,
         this.fuelClient.getBaseAssetId()
       );
 

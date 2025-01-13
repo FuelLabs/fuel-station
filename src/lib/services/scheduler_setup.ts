@@ -5,16 +5,23 @@ import { FundingManager } from './funding_manager';
 import { SchedulerService } from './scheduler';
 import { SmallCoinsManager } from './small_coins_manager';
 import type { FuelStationDatabase } from '../db/database';
+import type { WalletUnlocked } from 'fuels';
+
+export type SchedulerConfig = {
+  database: FuelStationDatabase;
+  fuelClient: FuelClient;
+  funderWallet: WalletUnlocked;
+  minimumCoinValue: number;
+  fundingAmount: number;
+};
 
 export const schedulerSetup = ({
   database,
   fuelClient,
-  env,
-}: {
-  database: FuelStationDatabase;
-  fuelClient: FuelClient;
-  env: EnvConfig;
-}) => {
+  funderWallet,
+  minimumCoinValue,
+  fundingAmount,
+}: SchedulerConfig) => {
   const scheduler = new SchedulerService();
 
   scheduler.addRoutine(
@@ -33,7 +40,8 @@ export const schedulerSetup = ({
       name: 'FundingManager',
       // 10 seconds
       intervalMs: 10000,
-      env,
+      minimumCoinValue,
+      fundingAmount,
     })
   );
 
@@ -43,7 +51,8 @@ export const schedulerSetup = ({
       name: 'SmallCoinsManager',
       // 1 hour
       intervalMs: 60 * 60 * 1000,
-      env,
+      funderWallet,
+      minimumCoinValue,
     })
   );
 
