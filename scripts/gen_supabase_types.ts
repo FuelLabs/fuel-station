@@ -9,4 +9,4 @@ if (!supabaseProjectId) {
   throw new Error('SUPABASE_PROJECT_ID is not set');
 }
 
-await $`supabase gen types --lang=typescript  --project-id "${supabaseProjectId}" --schema public > ./src/types/database.types.ts`;
+await $`supabase gen types --lang=typescript  --local --schema public  > ./src/types/database.types.ts`;

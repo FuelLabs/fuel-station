@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { envSchema } from '../src/lib';
-import accounts from '../accounts.json';
+import { envSchema, generateMnemonicWallets } from '../src/lib';
 import type { Database } from '../src/types';
 
 const main = async () => {
@@ -11,9 +10,14 @@ const main = async () => {
     env.SUPABASE_ANON_KEY
   );
 
+  const accounts = generateMnemonicWallets(
+    env.FUEL_PAYMASTER_MNEMONIC,
+    env.NUM_OF_ACCOUNTS
+  );
+
   for (const account of accounts) {
     const { error } = await supabase.from('accounts').insert({
-      address: account.address,
+      address: account.address.toB256(),
       is_locked: false,
       needs_funding: true,
     });

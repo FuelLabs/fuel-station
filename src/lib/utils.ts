@@ -5,7 +5,12 @@ import type {
   OutputChangeSchema,
   OutputCoinSchema,
 } from '../lib/schema/api';
-import { OutputType, type ScriptTransactionRequest } from 'fuels';
+import {
+  OutputType,
+  Wallet,
+  WalletUnlocked,
+  type ScriptTransactionRequest,
+} from 'fuels';
 
 export const findOutputCoinTypeCoin = (
   scriptRequest: ScriptRequest,
@@ -129,4 +134,22 @@ export const setRequestFields = (
   request.outputs = scriptRequest.outputs;
 
   request.witnesses = scriptRequest.witnesses;
+};
+
+export const generateMnemonicWallets = (
+  mnemonic: string,
+  numOfAccounts: number
+) => {
+  const wallets: WalletUnlocked[] = [];
+
+  for (let i = 0; i < numOfAccounts; i++) {
+    const derivationPath = `m/44'/1179993420'/0'/0/${i}`;
+    const wallet: WalletUnlocked = Wallet.fromMnemonic(
+      mnemonic,
+      derivationPath
+    );
+    wallets.push(wallet);
+  }
+
+  return wallets;
 };
