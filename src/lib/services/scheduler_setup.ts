@@ -1,5 +1,4 @@
 import type { FuelClient } from '../fuel';
-import type { EnvConfig } from '../schema/config';
 import { AccountsUnlockManager } from './accounts_unlock_manager';
 import { FundingManager } from './funding_manager';
 import { SchedulerService } from './scheduler';
