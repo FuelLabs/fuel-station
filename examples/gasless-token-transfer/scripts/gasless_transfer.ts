@@ -28,8 +28,7 @@ const main = async () => {
   // NOTE: addCoinInput automatically adds a change output for that particular asset's coin to the same address
   request.outputs = [];
 
-  request.addCoinOutput(randomReciever.address, 10, assetId.bits);
-  request.addChangeOutput(Wallet.generate().address, assetId.bits);
+  request.addCoinOutput(randomReciever.address, 100, assetId.bits);
 
   const { transaction, gasCoin, jobId } =
     await gasStationClient.prepareGaslessTransaction(request);

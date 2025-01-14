@@ -1,6 +1,6 @@
 import { createAssetId, Provider, Wallet, ZeroBytes32 } from 'fuels';
 import { config } from 'dotenv';
-import { DummyStablecoinFactory } from '../src/dummy_stablecoin_artifact';
+import { DummyStablecoinFactory } from '../src';
 import { envSchema } from '../../src/lib/schema/config';
 import { writeFileSync } from 'node:fs';
 
