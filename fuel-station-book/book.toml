@@ -1,0 +1,6 @@
+[book]
+authors = ["Harsh Bajpai"]
+language = "en"
+multilingual = false
+src = "src"
+title = "fuel station book"
