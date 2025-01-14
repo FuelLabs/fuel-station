@@ -1,7 +1,7 @@
 import { Provider, ScriptTransactionRequest, Wallet } from 'fuels';
-import { envSchema } from '../../src/lib/schema/config';
+import { envSchema } from '../../../src/lib/schema/config';
 import { fuelAccount, assetId } from '../depolyments.json';
-import { GasStationClient } from '../../src/lib/client';
+import { GasStationClient } from '../../../src/lib/client';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
