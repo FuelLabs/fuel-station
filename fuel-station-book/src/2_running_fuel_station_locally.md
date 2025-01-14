@@ -85,6 +85,6 @@ bun run dev
 
 Hurray! You have successfully run the fuel station server locally.
 
-Right now, the service is running on `http://127.0.0.1:3000`. 
+Right now, the service is running on `http://127.0.0.1:3000`.
 
 The gas paymaster for now can allocate a coin and sign over them, in the next chapter we will enable gasless token transfers via the service.
