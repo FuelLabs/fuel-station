@@ -27,7 +27,7 @@ Here, we have a dummy stable coin contract, located in `dummy_stable_coin`. We w
 To deploy this stable coin, from the root of the main repository, run the following command:
 
 ```
-bun run stable-coin-deploy-example
+bun run gasless-token-example-deploy
 ```
 
 This will deploy the stable coin, and save the details in a `deployments.json` file in the `examples/gasless-token-transfer` directory.
@@ -39,7 +39,7 @@ This file contains the contract details and a random fuel address that we can mi
 To mint the stable coin, from the root of the main repository, run the following command:
 
 ```
-bun run stable-coin-mint-example
+bun run gasless-token-example-mint
 ```
 
 This will mint the stable coin to the fuel address in the `deployments.json` file.
@@ -49,7 +49,7 @@ This will mint the stable coin to the fuel address in the `deployments.json` fil
 To check the balance of the stable coin for the fuel address, from the root of the main repository, run the following command:
 
 ```
-bun run stable-coin-balance-example
+bun run gasless-token-example-balance
 ```
 
 This will print the balance of the stable coin for the fuel address. It should be `0x64`
@@ -66,7 +66,7 @@ The scripts does the following:
   - the stable coin of value `0x64` as input
   - sending `0x64` value of this coin to a random receiver address
 - It then uses the paymaster client to get the gascoin and send the transaction
-- post succesfull run, `bun run stable-coin-balance-example` should show the balance of the to be `0`, as all of the stable coin has been transferred to the receiver.
+- post succesfull run, `bun run gasless-token-example-balance` should show the balance of the to be `0`, as all of the stable coin has been transferred to the receiver.
 
 ### Initializing the gas paymaster client
 
@@ -111,11 +111,11 @@ Now, we have some understanding of what this script is doing, let's run it!
 From the root of the main repository, run the following command:
 
 ```
-bun run stable-coin-send-example
+bun run gasless-token-example-send
 ```
 
 If you see the logs, we were able to complete a gasless transfer here of this dummy stable coin!
 
 Checking the balance again would reveal that the balance of the stable coin for the fuel address is `0x0`, since it has been transferred to the receiver.
 
-You can run `bun run stable-coin-balance-example` from the project root to check this.
+You can run `bun run gasless-token-example-balance` from the project root to check this.
