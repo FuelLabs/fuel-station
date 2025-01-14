@@ -1,7 +1,7 @@
 import { createAssetId, Provider, Wallet, ZeroBytes32 } from 'fuels';
 import { config } from 'dotenv';
 import { DummyStablecoinFactory } from '../src';
-import { envSchema } from '../../src/lib/schema/config';
+import { envSchema } from '../../../src/lib/schema/config';
 import { writeFileSync } from 'node:fs';
 
 config();
@@ -41,7 +41,7 @@ const main = async () => {
   const fuelAccount = Wallet.generate();
 
   writeFileSync(
-    './stable_coin_transfer/depolyments.json',
+    './examples/gasless-token-transfer/depolyments.json',
     JSON.stringify(
       {
         contractId,

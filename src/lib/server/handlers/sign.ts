@@ -21,7 +21,7 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
     return res.status(400).json({ error: 'Invalid request body' });
   }
 
-  console.log('req.body', data);
+  // console.log('req.body', data);
 
   const scriptRequest = data.request;
 
@@ -69,11 +69,13 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
     accounts.map((account) => account.address.toB256())
   );
   console.log('job.address', job.address);
+
   const account = accounts.find(
     ({ address }) =>
       address.toB256().toLowerCase() === job.address.toLowerCase()
   );
   if (!account) {
+    console.log('account not found');
     return res.status(404).json({ error: 'Account not found' });
   }
 
