@@ -24,12 +24,11 @@ export const schedulerSetup = async ({
   accounts,
 }: SchedulerConfig) => {
   // upsert all accounts to the database
-  // we mark all accounts as needing funding so that the funding manager will fund them
   await database.upsertAccounts(
     accounts.map((account) => ({
       address: account.address.toB256(),
       isLocked: false,
-      needsFunding: true,
+      needsFunding: false,
     }))
   );
 
