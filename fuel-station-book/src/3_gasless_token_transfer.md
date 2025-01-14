@@ -5,6 +5,7 @@ In this chapter, we will enable gasless token transfer via the service, it will 
 All fuel station codebases are present in the `examples` folder. If you look at it, we have a `gasless-token-transfer` folder.
 
 The directory structure is as follows:
+
 ```
 examples/gasless-token-transfer
 ├── dummy_stable_coin
@@ -60,25 +61,25 @@ The script that performs the gasless transfer is in `examples/gasless-token-tran
 It uses the paymaster client provided by the fuel station server to perform a gasless transfer.
 
 The scripts does the following:
+
 - create a script transaction with:
-    - the stable coin of value `0x64` as input
-    - sending `0x64` value of this coin to a random receiver address
+  - the stable coin of value `0x64` as input
+  - sending `0x64` value of this coin to a random receiver address
 - It then uses the paymaster client to get the gascoin and send the transaction
 - post succesfull run, `bun run stable-coin-balance-example` should show the balance of the to be `0`, as all of the stable coin has been transferred to the receiver.
 
 ### Initializing the gas paymaster client
 
 ```typescript
-  const gasStationClient = new GasStationClient(
-    env.FUEL_STATION_SERVER_URL,
-    provider
-  );
+const gasStationClient = new GasStationClient(
+  env.FUEL_STATION_SERVER_URL,
+  provider
+);
 ```
 
 ### Preparing the gasless transaction
 
 Once the user has built their transaction, they need to call the `prepareGaslessTransaction` method on the paymaster client, this will return a transaction with the gascoin as input included in the transaction, along with the respective output coins in place!
-
 
 ```
  const { transaction, gasCoin, jobId } =
@@ -115,6 +116,6 @@ bun run stable-coin-send-example
 
 If you see the logs, we were able to complete a gasless transfer here of this dummy stable coin!
 
-Checking the balance again would reveal that the balance of the stable coin for the fuel address is `0x0`, since it has been transferred to the receiver. 
+Checking the balance again would reveal that the balance of the stable coin for the fuel address is `0x0`, since it has been transferred to the receiver.
 
 You can run `bun run stable-coin-balance-example` from the project root to check this.
