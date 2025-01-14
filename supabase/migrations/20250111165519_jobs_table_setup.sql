@@ -4,7 +4,7 @@
 -- Up Migration
 CREATE TABLE IF NOT EXISTS public.jobs (
     job_id TEXT PRIMARY KEY,
-    address TEXT UNIQUE,
+    address TEXT,
     job_status TEXT,
     expiry TIMESTAMPTZ,
     txn_hash TEXT
