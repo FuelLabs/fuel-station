@@ -13,7 +13,10 @@ import { bn, Provider, Wallet } from 'fuels';
 const main = async () => {
   const env = envSchema.parse(process.env);
 
-  const supabaseClient = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+  const supabaseClient = createClient(
+    env.SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY
+  );
   const database = new SupabaseDB(supabaseClient);
   const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
   const funderWallet = Wallet.fromPrivateKey(

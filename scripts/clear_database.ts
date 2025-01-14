@@ -5,7 +5,10 @@ import { ACCOUNT_TABLE_NAME, JOB_TABLE_NAME } from '../src/constants';
 const main = async () => {
   const env = envSchema.parse(process.env);
 
-  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
+  const supabase = createClient(
+    env.SUPABASE_URL,
+    env.SUPABASE_SERVICE_ROLE_KEY
+  );
 
   const { error: accountsError } = await supabase
     .from(ACCOUNT_TABLE_NAME)

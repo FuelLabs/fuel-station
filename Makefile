@@ -2,4 +2,7 @@ init:
 	supabase db reset
 
 book:
-	mdbook serve -p 3001
+	cd fuel-station-book && mdbook serve -p 3001
+
+start: 
+	bun run dev
