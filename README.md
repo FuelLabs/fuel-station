@@ -8,6 +8,16 @@ fuel-station is a non-custodial gas paymaster, this repo contains a demo impleme
 
 Read the [post](https://forum.fuel.network/t/fuel-station-gas-paymaster-on-fuel/7078) on the Fuel Forum for more information.
 
+## Read the Book
+
+Read the fuel-station book to understand how it works and how to use it.
+
+`cd fuel-station-book && mdbook serve -p 3001`
+
+If you don't have `mdbook` installed, you can install it by running `cargo install mdbook`.
+
+Then go to your browser and open `http://localhost:3001/` to read the book.
+
 ## API Documentation
 
 ### GET /health
