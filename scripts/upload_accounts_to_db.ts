@@ -7,7 +7,7 @@ const main = async () => {
 
   const supabase = createClient<Database>(
     env.SUPABASE_URL,
-    env.SUPABASE_ANON_KEY
+    env.SUPABASE_SERVICE_ROLE_KEY
   );
 
   const accounts = generateMnemonicWallets(

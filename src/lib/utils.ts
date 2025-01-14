@@ -10,7 +10,7 @@ import {
   Wallet,
   type WalletUnlocked,
   type ScriptTransactionRequest,
-  Provider,
+  type Provider,
 } from 'fuels';
 
 export const findOutputCoinTypeCoin = (

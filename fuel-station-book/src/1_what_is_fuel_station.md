@@ -6,7 +6,7 @@ Fuel Station is an implementation of a Fuel Paymaster. It is a service that allo
 
 ## How does it work?
 
-Fuel station has multiple accounts that are funded, an user can request for a gas coin from the fuel station. A gas coin is a coin provided by the fuel station to the user, which can be used to pay for the gas fees of the transaction. 
+Fuel station has multiple accounts that are funded, an user can request for a gas coin from the fuel station. A gas coin is a coin provided by the fuel station to the user, which can be used to pay for the gas fees of the transaction.
 
 This puts a lock of 30 seconds on the account that provided the gas coin. This is to prevent conflicts with other transactions.
 
