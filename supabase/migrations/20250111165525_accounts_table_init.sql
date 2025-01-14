@@ -4,7 +4,7 @@
 -- Up Migration
 CREATE TABLE IF NOT EXISTS public.accounts (
     id INT8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    address TEXT,
+    address TEXT UNIQUE,
     is_locked BOOL DEFAULT false,
     expiry TIMESTAMPTZ NULL,
     needs_funding BOOL DEFAULT false

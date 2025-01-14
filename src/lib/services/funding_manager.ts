@@ -1,5 +1,5 @@
 import { sleep } from 'bun';
-import type { EnvConfig, FuelClient, SupabaseDB } from '..';
+import type { FuelClient } from '..';
 import { RoutineJob } from './routine';
 import type { FuelStationDatabase } from '../db/database';
 

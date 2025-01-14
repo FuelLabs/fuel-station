@@ -86,11 +86,18 @@ export class SupabaseDB implements FuelStationDatabase {
     return { error: null, expired: new Date(data[0].expiry) < new Date() };
   }
 
-  async insertAccounts(addresses: string[]): Promise<void> {
-    const entries = addresses.map((address) => ({ address, is_locked: false }));
+  async upsertAccounts(
+    addresses: { address: string; isLocked: boolean; needsFunding: boolean }[]
+  ): Promise<void> {
+    const entries = addresses.map(({ address, isLocked, needsFunding }) => ({
+      address,
+      is_locked: isLocked,
+      needs_funding: needsFunding,
+    }));
+
     const { error } = await this.supabaseClient
       .from(ACCOUNT_TABLE_NAME)
-      .upsert(entries);
+      .upsert(entries, { onConflict: 'address' });
 
     if (error) {
       throw error;
