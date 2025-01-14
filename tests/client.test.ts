@@ -21,8 +21,11 @@ describe('client', async () => {
     env.SUPABASE_SERVICE_ROLE_KEY
   );
   const supabaseDB = new SupabaseDB(supabaseClient);
-  const uelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
-  const funderWallet = Wallet.fromPrivateKey(env.FUEL_FUNDER_PRIVATE_KEY);
+  const fuelProvider = await Provider.create(env.FUEL_PROVIDER_URL);
+  const funderWallet = Wallet.fromPrivateKey(
+    env.FUEL_FUNDER_PRIVATE_KEY,
+    fuelProvider
+  );
 
   const fuelClient = new FuelClient({
     provider: fuelProvider,

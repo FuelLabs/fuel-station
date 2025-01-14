@@ -48,7 +48,9 @@ export interface FuelStationDatabase {
   /**
    * Insert multiple accounts
    */
-  insertAccounts(addresses: string[]): Promise<void>;
+  upsertAccounts(
+    addresses: { address: string; isLocked: boolean; needsFunding: boolean }[]
+  ): Promise<void>;
 
   /**
    * Get next available account for allocation
