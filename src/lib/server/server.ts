@@ -1,10 +1,7 @@
-import express, { application } from 'express';
-import type { FuelClient, SupabaseDB } from '..';
-import { onlyOneInputCoinPolicy, spendingCheckPolicy } from './policies';
+import express from 'express';
+import type { FuelClient } from '..';
 import { envSchema } from '../schema/config';
 import type { BN, Wallet, WalletUnlocked } from 'fuels';
-import type { SignRequest } from '../../types';
-import { readFileSync } from 'node:fs';
 import https from 'node:https';
 import type http from 'node:http';
 import {
@@ -18,7 +15,7 @@ import type { FuelStationDatabase } from '../db/database';
 
 const ENV = envSchema.parse(process.env);
 
-console.log('ENV', ENV.ENV);
+console.log('ENV', ENV);
 
 export type GasStationServerConfig = {
   port: number;
@@ -30,31 +27,12 @@ export type GasStationServerConfig = {
   accounts: WalletUnlocked[];
 };
 
-export type PolicyHandler = (ctx: {
-  transactionRequest: SignRequest['body']['request'];
-  job: {
-    address: string;
-    expiry: string;
-  };
-  fuelClient: FuelClient;
-  config: GasStationServerConfig;
-}) => Promise<Error | null>;
-
 export class GasStationServer {
   private config: GasStationServerConfig;
   private server: https.Server | http.Server | null = null;
-  policyHandlers: PolicyHandler[] = [];
 
   constructor(config: GasStationServerConfig) {
     this.config = config;
-
-    // default policies added to protect the paymaster
-    this.addPolicyHandler(onlyOneInputCoinPolicy);
-    this.addPolicyHandler(spendingCheckPolicy);
-  }
-
-  addPolicyHandler(policyHandler: PolicyHandler) {
-    this.policyHandlers.push(policyHandler);
   }
 
   async start() {
@@ -62,18 +40,12 @@ export class GasStationServer {
 
     const { port, isHttps } = this.config;
 
-    app.locals.config = { ...this.config, policyHandlers: this.policyHandlers };
+    app.locals.config = this.config;
     app.locals.ENV = ENV;
 
     console.log('isHttps', isHttps);
 
-    const options = isHttps
-      ? {
-          key: readFileSync(ENV.SSL_KEY_PATH),
-          cert: readFileSync(ENV.SSL_CERT_PATH),
-        }
-      : {};
-
+    // TODO: check if we need this
     app.set('trust proxy', true);
 
     app.use(express.json());
@@ -101,17 +73,10 @@ export class GasStationServer {
     );
 
     const promise = new Promise((resolve) => {
-      if (isHttps) {
-        this.server = https.createServer(options, app).listen(port, () => {
-          console.log(`Server is running on port ${port}`);
-          resolve(true);
-        });
-      } else {
-        this.server = app.listen(port, () => {
-          console.log(`Server is running on port ${port}`);
-          resolve(true);
-        });
-      }
+      this.server = app.listen(port, () => {
+        console.log(`Server is running on port ${port}`);
+        resolve(true);
+      });
     });
 
     await promise;
