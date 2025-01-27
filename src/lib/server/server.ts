@@ -12,6 +12,7 @@ import {
 } from './handlers';
 import { metadataHandler } from './handlers/metadata';
 import type { FuelStationDatabase } from '../db/database';
+import { depositHandler } from './handlers/deposit';
 
 const ENV = envSchema.parse(process.env);
 
@@ -71,6 +72,9 @@ export class GasStationServer {
       // @ts-ignore: TODO: fix handler type
       jobCompleteHandler
     );
+
+    // @ts-ignore: TODO: fix handler type
+    app.post('/deposit', depositHandler);
 
     const promise = new Promise((resolve) => {
       this.server = app.listen(port, () => {
