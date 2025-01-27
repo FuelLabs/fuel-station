@@ -4,6 +4,7 @@ import type { JobStatus } from '../../types';
 import { ACCOUNT_TABLE_NAME, JOB_TABLE_NAME } from '../../constants';
 import { envSchema } from '../schema/config';
 import type { FuelStationDatabase } from './database';
+import { bn, type BN } from 'fuels';
 
 const env = envSchema.parse(process.env);
 
@@ -33,7 +34,9 @@ export class SupabaseDB implements FuelStationDatabase {
       throw error;
     }
 
-    return data.map((account) => account.address);
+    return data
+      .map((account) => account.address!)
+      .filter((address): address is string => address != null);
   }
 
   async unlockAccount(address: string): Promise<PostgrestError | null> {
@@ -60,7 +63,22 @@ export class SupabaseDB implements FuelStationDatabase {
       return { error, account: null };
     }
 
-    return { error: null, account: data?.[0] ?? null };
+    const account = data?.[0];
+    if (!account?.address || account.is_locked === null) {
+      return {
+        error: new Error('Invalid account data') as PostgrestError,
+        account: null,
+      };
+    }
+
+    return {
+      error: null,
+      account: {
+        ...account,
+        address: account.address,
+        is_locked: account.is_locked,
+      },
+    };
   }
 
   async isAccountLockExpired(
@@ -113,9 +131,13 @@ export class SupabaseDB implements FuelStationDatabase {
   // AND needs_funding = false;
   // $$ LANGUAGE sql;
   async getNextAccount(): Promise<string | null> {
-    const { data, error } = await this.supabaseClient.rpc(
-      'get_random_next_record'
-    );
+    const { data, error } = (await this.supabaseClient.rpc(
+      'get_random_next_record',
+      {}
+    )) as unknown as {
+      data: Array<{ address: string | null }> | null;
+      error: PostgrestError | null;
+    };
 
     if (error) {
       throw error;
@@ -134,7 +156,9 @@ export class SupabaseDB implements FuelStationDatabase {
       throw error;
     }
 
-    return data.map((account) => account.address);
+    return data
+      .map((account) => account.address!)
+      .filter((address): address is string => address != null);
   }
 
   async getLockedAccounts(): Promise<string[]> {
@@ -147,7 +171,9 @@ export class SupabaseDB implements FuelStationDatabase {
       throw error;
     }
 
-    return data.map((account) => account.address);
+    return data
+      .map((account) => account.address!)
+      .filter((address): address is string => address != null);
   }
 
   async setAccountNeedsFunding(
@@ -208,7 +234,23 @@ export class SupabaseDB implements FuelStationDatabase {
       return { error, job: null };
     }
 
-    return { error: null, job: data?.[0] ?? null };
+    const job = data?.[0];
+    if (!job?.address || !job.expiry || !job.job_status) {
+      return {
+        error: new Error('Invalid job data') as PostgrestError,
+        job: null,
+      };
+    }
+
+    return {
+      error: null,
+      job: {
+        ...job,
+        address: job.address,
+        expiry: job.expiry,
+        job_status: job.job_status,
+      },
+    };
   }
 
   async updateJobStatus(
@@ -221,5 +263,28 @@ export class SupabaseDB implements FuelStationDatabase {
       .eq('job_id', jobId);
 
     return error ?? null;
+  }
+
+  async upsertBalance(
+    publicKey: string,
+    balance: BN
+  ): Promise<PostgrestError | null> {
+    const { error } = await this.supabaseClient
+      .from('balances')
+      .upsert({ public_key: publicKey, balance: balance.toNumber() });
+    return error;
+  }
+
+  async getBalance(publicKey: string): Promise<BN | null> {
+    const { data, error } = await this.supabaseClient
+      .from('balances')
+      .select('balance')
+      .eq('public_key', publicKey);
+
+    if (error) {
+      throw error;
+    }
+
+    return data?.[0]?.balance ? bn(data[0].balance) : null;
   }
 }

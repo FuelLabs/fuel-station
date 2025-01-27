@@ -1,5 +1,6 @@
 import type { PostgrestError } from '@supabase/supabase-js';
 import type { JobStatus } from '../../types';
+import type { BN } from 'fuels';
 
 /**
  * Interface for all database implementations
@@ -109,4 +110,8 @@ export interface FuelStationDatabase {
     jobId: string,
     status: JobStatus
   ): Promise<PostgrestError | null>;
+
+  upsertBalance(publicKey: string, balance: BN): Promise<PostgrestError | null>;
+
+  getBalance(publicKey: string): Promise<BN | null>;
 }
