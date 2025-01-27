@@ -1,18 +1,14 @@
 import { ScriptTransactionRequest, Wallet } from 'fuels';
 import type { SignRequest, SignResponse } from '../../../types';
-import type { SupabaseDB } from '../../db';
-import type { FuelClient } from '../../fuel';
 import { ScriptRequestSignSchema } from '../../schema/api';
-import type { envSchema } from '../../schema/config';
 import { setRequestFields } from '../../utils';
-import type { GasStationServerConfig, PolicyHandler } from '../server';
+import type { GasStationServerConfig } from '../server';
 
 export const signHandler = async (req: SignRequest, res: SignResponse) => {
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
-  const config = req.app.locals.config as GasStationServerConfig & {
-    policyHandlers: PolicyHandler[];
-  };
-  const { database: supabaseDB, fuelClient, policyHandlers, accounts } = config;
+  const config = req.app.locals.config as GasStationServerConfig;
+
+  const { database: supabaseDB, fuelClient, accounts } = config;
 
   const { success, error, data } = ScriptRequestSignSchema.safeParse(req.body);
 
@@ -77,20 +73,6 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
   if (!account) {
     console.log('account not found');
     return res.status(404).json({ error: 'Account not found' });
-  }
-
-  // check all policy handlers
-  for (const policyHandler of policyHandlers) {
-    const error = await policyHandler({
-      transactionRequest: scriptRequest,
-      job,
-      config,
-      fuelClient,
-    });
-
-    if (error) {
-      return res.status(400).json({ error: error.message });
-    }
   }
 
   // sign the transaction
