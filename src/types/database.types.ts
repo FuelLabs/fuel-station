@@ -7,6 +7,31 @@ export type Json =
   | Json[];
 
 export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+          extensions?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       accounts: {
@@ -30,6 +55,30 @@ export type Database = {
           id?: never;
           is_locked?: boolean | null;
           needs_funding?: boolean | null;
+        };
+        Relationships: [];
+      };
+      balances: {
+        Row: {
+          balance: number;
+          created_at: string;
+          id: number;
+          public_key: string;
+          updated_at: string;
+        };
+        Insert: {
+          balance?: number;
+          created_at?: string;
+          id?: number;
+          public_key: string;
+          updated_at?: string;
+        };
+        Update: {
+          balance?: number;
+          created_at?: string;
+          id?: number;
+          public_key?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
@@ -62,7 +111,12 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_random_next_record: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          like: unknown;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;

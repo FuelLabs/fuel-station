@@ -17,7 +17,8 @@
     "show-balances-of-coin-accounts": "bun scripts/show_balances_of_coin_account.ts",
     "deploy-counter": "bun run counter_example/scripts/deploy_counter.ts",
     "increase-count": "bun run counter_example/scripts/increase_count.ts",
-    "get-count": "bun run counter_example/scripts/get_count.ts"
+    "get-count": "bun run counter_example/scripts/get_count.ts",
+    "gen-supabase-types": "sudo supabase gen types typescript --local > src/types/database.types.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",
