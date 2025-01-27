@@ -269,9 +269,16 @@ export class SupabaseDB implements FuelStationDatabase {
     publicKey: string,
     balance: BN
   ): Promise<PostgrestError | null> {
-    const { error } = await this.supabaseClient
-      .from('balances')
-      .upsert({ public_key: publicKey, balance: balance.toNumber() });
+    let prevBalance = await this.getBalance(publicKey);
+    if (!prevBalance) {
+      prevBalance = bn(0);
+    }
+
+    const { error } = await this.supabaseClient.from('balances').upsert({
+      public_key: publicKey,
+      balance: prevBalance.add(balance).toNumber(),
+    });
+
     return error;
   }
 
