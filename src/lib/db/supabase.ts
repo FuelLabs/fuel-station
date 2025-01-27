@@ -2,11 +2,8 @@ import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '../../types/database.types';
 import type { JobStatus } from '../../types';
 import { ACCOUNT_TABLE_NAME, JOB_TABLE_NAME } from '../../constants';
-import { envSchema } from '../schema/config';
 import type { FuelStationDatabase } from './database';
 import { bn, type BN } from 'fuels';
-
-const env = envSchema.parse(process.env);
 
 // TODO: We need to create a DB intefrace which SupabaseDB will implement
 export class SupabaseDB implements FuelStationDatabase {
@@ -274,10 +271,13 @@ export class SupabaseDB implements FuelStationDatabase {
       prevBalance = bn(0);
     }
 
-    const { error } = await this.supabaseClient.from('balances').upsert({
-      public_key: publicKey,
-      balance: prevBalance.add(balance).toNumber(),
-    });
+    const { error } = await this.supabaseClient.from('balances').upsert(
+      {
+        public_key: publicKey,
+        balance: prevBalance.add(balance).toNumber(),
+      },
+      { onConflict: 'public_key' }
+    );
 
     return error;
   }

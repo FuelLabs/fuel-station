@@ -30,7 +30,7 @@ export type SignResponse = TypedResponse<
 // TODO: this is temp, we need a proper deposit flow
 export type DepositRequest = TypedRequest<{
   publicKey: string;
-  balanace: number;
+  balance: number;
 }>;
 
 export type DepositResponse = TypedResponse<
