@@ -9,6 +9,7 @@ import {
   signHandler,
   healthHandler,
   jobCompleteHandler,
+  balanceHandler,
 } from './handlers';
 import { metadataHandler } from './handlers/metadata';
 import type { FuelStationDatabase } from '../db/database';
@@ -75,6 +76,9 @@ export class GasStationServer {
 
     // @ts-ignore: TODO: fix handler type
     app.post('/deposit', depositHandler);
+
+    // @ts-ignore: TODO: fix handler type
+    app.get('/balance/:publicKey', balanceHandler);
 
     const promise = new Promise((resolve) => {
       this.server = app.listen(port, () => {
