@@ -1,5 +1,4 @@
 import type { Request, Response } from 'express';
-import type { BN } from 'fuels';
 import type { GasStationServerConfig } from '../server';
 
 export const metadataHandler = (req: Request, res: Response) => {

@@ -1,8 +1,6 @@
 import type { Request } from 'express';
 import type { AllocateCoinResponse } from '../../../types';
 import { normalizeJSON, type Coin } from 'fuels';
-import type { SupabaseDB } from '../../db';
-import type { FuelClient } from '../../fuel';
 import { AllocateCoinResponseSchema } from '../../schema/api';
 import type { envSchema } from '../../schema/config';
 import type { GasStationServerConfig } from '../server';

@@ -26,3 +26,16 @@ export type SignRequest = TypedRequest<ScriptRequestAPI>;
 export type SignResponse = TypedResponse<
   { signature: `0x${string}` } | { error: string }
 >;
+
+// TODO: this is temp, we need a proper deposit flow
+export type DepositRequest = TypedRequest<{
+  publicKey: string;
+  balanace: number;
+}>;
+
+export type DepositResponse = TypedResponse<
+  | {
+      status: boolean;
+    }
+  | { error: string }
+>;
