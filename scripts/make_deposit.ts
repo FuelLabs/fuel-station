@@ -18,6 +18,13 @@ const main = async () => {
   });
 
   console.log('status', res.data.status);
+
+  console.log('getting balance ...');
+  const balanceRes = await axios.get(
+    `${FUEL_STATION_SERVER_URL}/balance/${publicKey}`
+  );
+
+  console.log('balance', balanceRes.data.balance);
 };
 
 main();

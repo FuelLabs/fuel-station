@@ -39,3 +39,10 @@ export type DepositResponse = TypedResponse<
     }
   | { error: string }
 >;
+
+export type BalanceResponse = TypedResponse<
+  | {
+      balance: number;
+    }
+  | { error: string }
+>;
