@@ -68,17 +68,18 @@ export const allocateCoinHandler = async (
     return res.status(500).json({ error: 'Failed to lock account' });
   }
 
-  const { error: insertError, jobId } = await supabaseDB.insertNewJob(
+  const { error: insertError, jobId } = await supabaseDB.insertNewJob({
     address,
-    lockTimeStamp
-  );
+    token,
+    expiry: lockTimeStamp,
+    prevBalance: coin.amount,
+  });
   if (insertError) {
     console.error(insertError);
     return res.status(500).json({ error: 'Failed to insert job' });
   }
 
   console.log('jobId', jobId);
-  // console.log('sent coin:', coin);
 
   const {
     success,
