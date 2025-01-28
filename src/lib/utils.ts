@@ -11,7 +11,10 @@ import {
   type WalletUnlocked,
   type ScriptTransactionRequest,
   type Provider,
+  Signer,
 } from 'fuels';
+import { secp256k1 } from '@noble/curves/secp256k1';
+import { ALLOCATE_COIN_MESSAGE_HASH_HEX } from '../constants';
 
 export const findOutputCoinTypeCoin = (
   scriptRequest: ScriptRequest,
@@ -159,4 +162,18 @@ export const generateMnemonicWallets = (
   }
 
   return wallets;
+};
+
+export const signAllocateCoin = (signer: Signer) => {
+  const signature = signer.sign(ALLOCATE_COIN_MESSAGE_HASH_HEX);
+  return signature;
+};
+
+export const verifyAllocateCoin = (publicKey: string, signature: string) => {
+  const isValid = secp256k1.verify(
+    signature,
+    ALLOCATE_COIN_MESSAGE_HASH_HEX.slice(2),
+    publicKey.slice(2)
+  );
+  return isValid;
 };
