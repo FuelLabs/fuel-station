@@ -121,4 +121,9 @@ export interface FuelStationDatabase {
   upsertBalance(publicKey: string, balance: BN): Promise<PostgrestError | null>;
 
   getBalance(publicKey: string): Promise<BN | null>;
+
+  updateJobCoinValueConsumed(
+    jobId: string,
+    coinValueConsumed: BN
+  ): Promise<PostgrestError | null>;
 }

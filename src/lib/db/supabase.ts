@@ -270,6 +270,18 @@ export class SupabaseDB implements FuelStationDatabase {
     return error ?? null;
   }
 
+  async updateJobCoinValueConsumed(
+    jobId: string,
+    coinValueConsumed: BN
+  ): Promise<PostgrestError | null> {
+    const { error } = await this.supabaseClient
+      .from(JOB_TABLE_NAME)
+      .update({ coin_value_consumed: coinValueConsumed.toNumber() })
+      .eq('job_id', jobId);
+
+    return error ?? null;
+  }
+
   async upsertBalance(
     token: string,
     balance: BN

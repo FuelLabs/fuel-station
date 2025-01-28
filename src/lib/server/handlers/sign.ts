@@ -1,9 +1,13 @@
-import { ScriptTransactionRequest, Wallet } from 'fuels';
+import { type BN, bn, ScriptTransactionRequest, Wallet } from 'fuels';
 import type { SignRequest, SignResponse } from '../../../types';
 import { ScriptRequestSignSchema } from '../../schema/api';
-import { setRequestFields } from '../../utils';
+import {
+  findInputCoinTypeCoin,
+  findOutputCoinTypeCoin,
+  setRequestFields,
+} from '../../utils';
 import type { GasStationServerConfig } from '../server';
-import jwt from 'jsonwebtoken';
+
 export const signHandler = async (req: SignRequest, res: SignResponse) => {
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
   const config = req.app.locals.config as GasStationServerConfig;
@@ -73,6 +77,46 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
   if (!account) {
     console.log('account not found');
     return res.status(404).json({ error: 'Account not found' });
+  }
+
+  const inputCoin = findInputCoinTypeCoin(
+    data.request,
+    job.address,
+    fuelClient.getBaseAssetId()
+  );
+  if (!inputCoin) {
+    return res.status(404).json({ error: 'Input coin not found' });
+  }
+
+  const outputCoin = findOutputCoinTypeCoin(
+    data.request,
+    job.address,
+    fuelClient.getBaseAssetId()
+  );
+  if (!outputCoin) {
+    return res.status(404).json({ error: 'Output coin not found' });
+  }
+
+  const coinValueConsumed = bn(inputCoin.amount).sub(outputCoin.amount);
+  // we can use the BN type here because we know that the balance is present if we are here in the codebase
+  const prevBalance = (await supabaseDB.getBalance(job.token)) as BN;
+
+  const updateError = await supabaseDB.upsertBalance(
+    job.token,
+    prevBalance.sub(coinValueConsumed)
+  );
+  if (updateError) {
+    console.error(updateError);
+    return res.status(500).json({ error: 'Failed to update balance' });
+  }
+
+  const updateJobCoinValueConsumedError =
+    await supabaseDB.updateJobCoinValueConsumed(jobId, coinValueConsumed);
+  if (updateJobCoinValueConsumedError) {
+    console.error(updateJobCoinValueConsumedError);
+    return res
+      .status(500)
+      .json({ error: 'Failed to update job coin value consumed' });
   }
 
   // sign the transaction
