@@ -3,29 +3,30 @@ import { normalizeJSON, type Coin } from 'fuels';
 import { AllocateCoinResponseSchema } from '../../schema/api';
 import type { envSchema } from '../../schema/config';
 import type { GasStationServerConfig } from '../server';
-import { secp256k1 } from '@noble/curves/secp256k1';
-import { ALLOCATE_COIN_MESSAGE_HASH_HEX } from '../../../constants';
+import jwt from 'jsonwebtoken';
 
 export const allocateCoinHandler = async (
   req: AllocateCoinRequest,
   res: AllocateCoinResponse
 ) => {
-  const { publicKey, signature } = req.body;
-
-  const isValid = secp256k1.verify(
-    signature,
-    ALLOCATE_COIN_MESSAGE_HASH_HEX,
-    publicKey
-  );
-  if (!isValid) {
-    return res.status(401).json({ error: 'Invalid signature' });
-  }
+  const { token } = req.body;
 
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
   const config = req.app.locals.config as GasStationServerConfig;
+  const { database: supabaseDB, fuelClient } = config;
+
   const ENV = req.app.locals.ENV as Zod.infer<typeof envSchema>;
 
-  const { database: supabaseDB, fuelClient } = config;
+  try {
+    jwt.verify(token, ENV.JWT_PRIVATE_KEY);
+  } catch (error) {
+    return res.status(401).json({ error: 'invalid token' });
+  }
+
+  const currentBalance = await supabaseDB.getBalance(token);
+  if (!currentBalance || currentBalance.lt(ENV.FUNDING_AMOUNT)) {
+    return res.status(401).json({ error: 'Insufficient balance' });
+  }
 
   let coin: Coin | null = null;
   let address: string | null = null;

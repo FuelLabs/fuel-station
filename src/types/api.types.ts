@@ -18,8 +18,7 @@ export interface TypedResponse<T> extends Response {
 export type TokenResponse = TypedResponse<z.infer<typeof TokenResponseSchema>>;
 
 export type AllocateCoinRequest = TypedRequest<{
-  publicKey: string;
-  signature: string;
+  token: string;
 }>;
 
 export type AllocateCoinResponse = TypedResponse<
