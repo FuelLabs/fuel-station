@@ -60,28 +60,28 @@ export type Database = {
       jobs: {
         Row: {
           address: string | null;
+          coin_value_consumed: number | null;
           expiry: string | null;
           job_id: string;
           job_status: string | null;
-          prev_balance: number;
           token: string;
           txn_hash: string | null;
         };
         Insert: {
           address?: string | null;
+          coin_value_consumed?: number | null;
           expiry?: string | null;
           job_id: string;
           job_status?: string | null;
-          prev_balance: number;
           token: string;
           txn_hash?: string | null;
         };
         Update: {
           address?: string | null;
+          coin_value_consumed?: number | null;
           expiry?: string | null;
           job_id?: string;
           job_status?: string | null;
-          prev_balance?: number;
           token?: string;
           txn_hash?: string | null;
         };

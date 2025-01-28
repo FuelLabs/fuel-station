@@ -85,12 +85,10 @@ export interface FuelStationDatabase {
     address,
     token,
     expiry,
-    prevBalance,
   }: {
     address: string;
     token: string;
     expiry: Date;
-    prevBalance: BN;
   }): Promise<{ error: PostgrestError | null; jobId: string }>;
 
   /**
