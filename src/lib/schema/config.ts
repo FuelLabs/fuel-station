@@ -11,6 +11,7 @@ export const envSchema = z.object({
   FUNDING_AMOUNT: z.coerce.number(),
   MAX_VALUE_PER_COIN: z.coerce.number(),
   NUM_OF_ACCOUNTS: z.coerce.number().default(100),
+  JWT_PRIVATE_KEY: z.string(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

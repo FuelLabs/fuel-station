@@ -65,6 +65,10 @@ export const ScriptRequestSignSchema = z.object({
   jobId: z.string().uuid(),
 });
 
+export const TokenResponseSchema = z.object({
+  token: z.string(),
+});
+
 export const AllocateCoinResponseSchema = z.object({
   coin: z.object({
     id: z.string().startsWith('0x'),

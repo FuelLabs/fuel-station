@@ -1,17 +1,17 @@
 -- Create balances table (up migration)
 create table "public"."balances" (
     "id" bigserial primary key,
-    "public_key" text not null unique,
+    "token" text not null unique,
     "balance" numeric(20,8) not null default 0,
     "created_at" timestamp with time zone default timezone('utc'::text, now()) not null,
     "updated_at" timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- Add comment to the table
-comment on table "public"."balances" is 'Stores account balances associated with public keys';
+comment on table "public"."balances" is 'Stores account balances associated with tokens';
 
--- Create index on public_key for faster lookups
-create index balances_public_key_idx on public.balances using btree (public_key);
+-- Create index on token for faster lookups
+create index balances_token_idx on public.balances using btree (token);
 
 -- Add updated_at trigger
 create or replace function public.handle_updated_at()

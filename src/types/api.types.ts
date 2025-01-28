@@ -3,6 +3,7 @@ import type {
   AllocateCoinResponseSchema,
   ScriptRequestSchema,
   ScriptRequestSignSchema,
+  TokenResponseSchema,
 } from '../lib';
 import type { z } from 'zod';
 
@@ -13,6 +14,13 @@ export interface TypedRequest<T> extends Request {
 export interface TypedResponse<T> extends Response {
   json: (body: T) => this;
 }
+
+export type TokenResponse = TypedResponse<z.infer<typeof TokenResponseSchema>>;
+
+export type AllocateCoinRequest = TypedRequest<{
+  publicKey: string;
+  signature: string;
+}>;
 
 export type AllocateCoinResponse = TypedResponse<
   z.infer<typeof AllocateCoinResponseSchema> | { error: string }
