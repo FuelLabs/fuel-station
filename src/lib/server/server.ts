@@ -2,7 +2,7 @@ import express from 'express';
 import type { FuelClient } from '..';
 import { envSchema } from '../schema/config';
 import type { BN, Wallet, WalletUnlocked } from 'fuels';
-import https from 'node:https';
+import type https from 'node:https';
 import type http from 'node:http';
 import {
   allocateCoinHandler,
@@ -10,6 +10,7 @@ import {
   healthHandler,
   jobCompleteHandler,
   balanceHandler,
+  tokenHandler,
 } from './handlers';
 import { metadataHandler } from './handlers/metadata';
 import type { FuelStationDatabase } from '../db/database';
@@ -51,6 +52,8 @@ export class GasStationServer {
     app.set('trust proxy', true);
 
     app.use(express.json());
+
+    app.get('/token', tokenHandler);
 
     app.get('/health', healthHandler);
 
