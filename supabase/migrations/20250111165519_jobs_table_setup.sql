@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS public.jobs (
     address TEXT,
     job_status TEXT,
     expiry TIMESTAMPTZ,
-    txn_hash TEXT
+    txn_hash TEXT,
+    token TEXT NOT NULL,
+    prev_balance NUMERIC NOT NULL
 );
 
 -- Add indexes for common query patterns

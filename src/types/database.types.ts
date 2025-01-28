@@ -63,6 +63,8 @@ export type Database = {
           expiry: string | null;
           job_id: string;
           job_status: string | null;
+          prev_balance: number;
+          token: string;
           txn_hash: string | null;
         };
         Insert: {
@@ -70,6 +72,8 @@ export type Database = {
           expiry?: string | null;
           job_id: string;
           job_status?: string | null;
+          prev_balance: number;
+          token: string;
           txn_hash?: string | null;
         };
         Update: {
@@ -77,6 +81,8 @@ export type Database = {
           expiry?: string | null;
           job_id?: string;
           job_status?: string | null;
+          prev_balance?: number;
+          token?: string;
           txn_hash?: string | null;
         };
         Relationships: [];

@@ -200,10 +200,17 @@ export class SupabaseDB implements FuelStationDatabase {
     return error ?? null;
   }
 
-  async insertNewJob(
-    address: string,
-    expiry: Date
-  ): Promise<{ error: PostgrestError | null; jobId: string }> {
+  async insertNewJob({
+    address,
+    token,
+    expiry,
+    prevBalance,
+  }: {
+    address: string;
+    token: string;
+    expiry: Date;
+    prevBalance: BN;
+  }): Promise<{ error: PostgrestError | null; jobId: string }> {
     const jobId = crypto.randomUUID();
 
     const { error } = await this.supabaseClient.from(JOB_TABLE_NAME).insert({
@@ -211,6 +218,8 @@ export class SupabaseDB implements FuelStationDatabase {
       address,
       job_status: 'pending',
       expiry: expiry.toISOString(),
+      token,
+      prev_balance: prevBalance.toNumber(),
     });
 
     return { error, jobId };
@@ -246,6 +255,8 @@ export class SupabaseDB implements FuelStationDatabase {
         address: job.address,
         expiry: job.expiry,
         job_status: job.job_status,
+        token: job.token,
+        prev_balance: bn(job.prev_balance),
       },
     };
   }

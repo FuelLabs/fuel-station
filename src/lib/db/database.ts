@@ -81,10 +81,17 @@ export interface FuelStationDatabase {
   /**
    * Insert a new job
    */
-  insertNewJob(
-    address: string,
-    expiry: Date
-  ): Promise<{ error: PostgrestError | null; jobId: string }>;
+  insertNewJob({
+    address,
+    token,
+    expiry,
+    prevBalance,
+  }: {
+    address: string;
+    token: string;
+    expiry: Date;
+    prevBalance: BN;
+  }): Promise<{ error: PostgrestError | null; jobId: string }>;
 
   /**
    * Get job details by ID
@@ -99,6 +106,8 @@ export interface FuelStationDatabase {
           job_id: string;
           job_status: string;
           txn_hash: string | null;
+          token: string;
+          prev_balance: BN;
         };
       }
   >;

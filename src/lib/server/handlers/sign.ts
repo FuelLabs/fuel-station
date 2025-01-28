@@ -3,7 +3,7 @@ import type { SignRequest, SignResponse } from '../../../types';
 import { ScriptRequestSignSchema } from '../../schema/api';
 import { setRequestFields } from '../../utils';
 import type { GasStationServerConfig } from '../server';
-
+import jwt from 'jsonwebtoken';
 export const signHandler = async (req: SignRequest, res: SignResponse) => {
   // TODO: find a way to directly derive this from the typescript compiler, i.e avoid using `as`
   const config = req.app.locals.config as GasStationServerConfig;
