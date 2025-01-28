@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { type BalanceResponse } from '../../../types/api.types';
+import type { BalanceResponse } from '../../../types/api.types';
 import type { GasStationServerConfig } from '../server';
 
 export const balanceHandler = async (req: Request, res: BalanceResponse) => {
