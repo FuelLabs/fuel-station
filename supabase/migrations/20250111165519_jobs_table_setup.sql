@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS public.jobs (
     expiry TIMESTAMPTZ,
     txn_hash TEXT,
     token TEXT NOT NULL,
-    prev_balance NUMERIC NOT NULL
+    coin_value_consumed NUMERIC DEFAULT 0
 );
 
 -- Add indexes for common query patterns

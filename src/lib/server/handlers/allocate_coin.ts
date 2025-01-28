@@ -72,7 +72,6 @@ export const allocateCoinHandler = async (
     address,
     token,
     expiry: lockTimeStamp,
-    prevBalance: coin.amount,
   });
   if (insertError) {
     console.error(insertError);

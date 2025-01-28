@@ -204,12 +204,10 @@ export class SupabaseDB implements FuelStationDatabase {
     address,
     token,
     expiry,
-    prevBalance,
   }: {
     address: string;
     token: string;
     expiry: Date;
-    prevBalance: BN;
   }): Promise<{ error: PostgrestError | null; jobId: string }> {
     const jobId = crypto.randomUUID();
 
@@ -219,7 +217,6 @@ export class SupabaseDB implements FuelStationDatabase {
       job_status: 'pending',
       expiry: expiry.toISOString(),
       token,
-      prev_balance: prevBalance.toNumber(),
     });
 
     return { error, jobId };
@@ -256,7 +253,7 @@ export class SupabaseDB implements FuelStationDatabase {
         expiry: job.expiry,
         job_status: job.job_status,
         token: job.token,
-        prev_balance: bn(job.prev_balance),
+        coin_value_consumed: bn(job.coin_value_consumed),
       },
     };
   }
