@@ -301,7 +301,7 @@ export class SupabaseDB implements FuelStationDatabase {
     const { error } = await this.supabaseClient.from('balances').upsert(
       {
         token,
-        balance: balance,
+        balance: balance.toNumber(),
       },
       { onConflict: 'token' }
     );
