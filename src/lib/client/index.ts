@@ -144,6 +144,6 @@ export class GasStationClient {
     const request =
       await wallet.populateTransactionWitnessesSignature(transaction);
 
-    return this.fuelProvider.sendTransaction(request);
+    // return this.fuelProvider.sendTransaction(request);
   }
 }

@@ -57,21 +57,21 @@ const main = async () => {
     await provider.getBalance(randomReciever.address, assetId.bits)
   );
 
-  const txResult = await (
-    await gasStationClient.sendTransaction({
-      transaction: request,
-      wallet,
-      gasCoin,
-      jobId,
-    })
-  ).waitForResult();
+  // const txResult = await (
+  await gasStationClient.sendTransaction({
+    transaction: request,
+    wallet,
+    gasCoin,
+    jobId,
+  });
+  // ).waitForResult();
 
-  console.log('tx status:', txResult.status);
+  // console.log('tx status:', txResult.status);
 
-  console.log(
-    'balance of reciever after:',
-    await provider.getBalance(randomReciever.address, assetId.bits)
-  );
+  // console.log(
+  //   'balance of reciever after:',
+  //   await provider.getBalance(randomReciever.address, assetId.bits)
+  // );
 };
 
 main();
