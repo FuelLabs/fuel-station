@@ -13,15 +13,35 @@ import {
 export class GasStationClient {
   endpoint: string;
   fuelProvider: Provider;
+  token: string | null;
 
-  constructor(endpoint: string, fuelProvider: Provider) {
+  constructor(endpoint: string, fuelProvider: Provider, token: string | null) {
     this.endpoint = endpoint;
     this.fuelProvider = fuelProvider;
+    this.token = token;
+  }
+
+  static async generateToken(endpoint: string) {
+    const { data: tokenResponseData } = await axios.get(`${endpoint}/token`);
+
+    return tokenResponseData.token;
+  }
+
+  async deposit(balance: number): Promise<boolean> {
+    const { data } = await axios.post(`${this.endpoint}/deposit`, {
+      token: this.token,
+      balance,
+    });
+
+    return data.status;
   }
 
   async prepareGaslessTransaction(transaction: ScriptTransactionRequest) {
     const { data: allocateCoinResponseData } = await axios.post(
-      `${this.endpoint}/allocate-coin`
+      `${this.endpoint}/allocate-coin`,
+      {
+        token: this.token,
+      }
     );
 
     if (!allocateCoinResponseData.coin) {
@@ -58,6 +78,12 @@ export class GasStationClient {
     );
 
     return { transaction, gasCoin, jobId };
+  }
+
+  async balance(): Promise<number> {
+    const { data } = await axios.get(`${this.endpoint}/balance/${this.token}`);
+
+    return data.balance;
   }
 
   async sendTransaction({

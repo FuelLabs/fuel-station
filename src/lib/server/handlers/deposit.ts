@@ -22,7 +22,12 @@ export const depositHandler = async (
 
   const { database: supabaseDB } = config;
 
-  const error = await supabaseDB.upsertBalance(token, bn(balance));
+  const previousBalance = (await supabaseDB.getBalance(token)) ?? bn(0);
+
+  const error = await supabaseDB.upsertBalance(
+    token,
+    previousBalance.add(bn(balance))
+  );
 
   if (error) {
     console.error(error);

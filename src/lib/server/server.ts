@@ -81,7 +81,7 @@ export class GasStationServer {
     app.post('/deposit', depositHandler);
 
     // @ts-ignore: TODO: fix handler type
-    app.get('/balance/:publicKey', balanceHandler);
+    app.get('/balance/:token', balanceHandler);
 
     const promise = new Promise((resolve) => {
       this.server = app.listen(port, () => {

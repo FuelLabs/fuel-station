@@ -101,6 +101,10 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
   // we can use the BN type here because we know that the balance is present if we are here in the codebase
   const prevBalance = (await supabaseDB.getBalance(job.token)) as BN;
 
+  if (prevBalance.lt(coinValueConsumed)) {
+    return res.status(400).json({ error: 'Insufficient balance' });
+  }
+
   const updateError = await supabaseDB.upsertBalance(
     job.token,
     prevBalance.sub(coinValueConsumed)

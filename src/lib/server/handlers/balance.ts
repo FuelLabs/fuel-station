@@ -7,12 +7,12 @@ export const balanceHandler = async (req: Request, res: BalanceResponse) => {
   const config = req.app.locals.config as GasStationServerConfig;
   const { database: supabaseDB } = config;
 
-  const { publicKey } = req.params;
-  if (!publicKey) {
-    return res.status(400).json({ error: 'publicKey is required' });
+  const { token } = req.params;
+  if (!token) {
+    return res.status(400).json({ error: 'token is required' });
   }
 
-  const balance = await supabaseDB.getBalance(publicKey);
+  const balance = await supabaseDB.getBalance(token as string);
   if (!balance) {
     return res.status(404).json({ error: 'balance not found' });
   }
