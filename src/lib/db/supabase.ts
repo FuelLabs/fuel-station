@@ -258,6 +258,18 @@ export class SupabaseDB implements FuelStationDatabase {
     };
   }
 
+  async updateTrasactionHash(
+    jobId: string,
+    transactionHash: string
+  ): Promise<PostgrestError | null> {
+    const { error } = await this.supabaseClient
+      .from(JOB_TABLE_NAME)
+      .update({ txn_hash: transactionHash })
+      .eq('job_id', jobId);
+
+    return error ?? null;
+  }
+
   async updateJobStatus(
     jobId: string,
     status: JobStatus
