@@ -1,4 +1,4 @@
-import { type BN, bn, ScriptTransactionRequest, Wallet } from 'fuels';
+import { type BN, bn, Provider, ScriptTransactionRequest, Wallet } from 'fuels';
 import type { SignRequest, SignResponse } from '../../../types';
 import { ScriptRequestSignSchema } from '../../schema/api';
 import {
@@ -112,6 +112,7 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
 
   const updateJobCoinValueConsumedError =
     await supabaseDB.updateJobCoinValueConsumed(jobId, coinValueConsumed);
+
   if (updateJobCoinValueConsumedError) {
     console.error(updateJobCoinValueConsumedError);
     return res
@@ -128,6 +129,16 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
   const request = new ScriptTransactionRequest();
 
   setRequestFields(request, scriptRequest);
+
+  const updateTransactionHashError = await supabaseDB.updateTransactionHash(
+    jobId,
+    request.getTransactionId((await fuelClient.getProvider()).getChainId())
+  );
+
+  if (updateTransactionHashError) {
+    console.error(updateTransactionHashError);
+    return res.status(500).json({ error: 'Failed to update transaction hash' });
+  }
 
   const signature = (await wallet.signTransaction(request)) as `0x${string}`;
 

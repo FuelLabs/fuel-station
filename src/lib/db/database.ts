@@ -118,6 +118,14 @@ export interface FuelStationDatabase {
     status: JobStatus
   ): Promise<PostgrestError | null>;
 
+  /**
+   * Update job status
+   */
+  updateTransactionHash(
+    jobId: string,
+    transactionHash: string
+  ): Promise<PostgrestError | null>;
+
   upsertBalance(publicKey: string, balance: BN): Promise<PostgrestError | null>;
 
   getBalance(publicKey: string): Promise<BN | null>;
