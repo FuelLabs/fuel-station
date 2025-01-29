@@ -23,11 +23,6 @@ export const allocateCoinHandler = async (
     return res.status(401).json({ error: 'invalid token' });
   }
 
-  const currentBalance = await supabaseDB.getBalance(token);
-  if (!currentBalance || currentBalance.lt(ENV.FUNDING_AMOUNT)) {
-    return res.status(401).json({ error: 'Insufficient balance' });
-  }
-
   let coin: Coin | null = null;
   let address: string | null = null;
 

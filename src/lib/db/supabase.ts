@@ -258,7 +258,7 @@ export class SupabaseDB implements FuelStationDatabase {
     };
   }
 
-  async updateTrasactionHash(
+  async updateTransactionHash(
     jobId: string,
     transactionHash: string
   ): Promise<PostgrestError | null> {
@@ -298,15 +298,10 @@ export class SupabaseDB implements FuelStationDatabase {
     token: string,
     balance: BN
   ): Promise<PostgrestError | null> {
-    let prevBalance = await this.getBalance(token);
-    if (!prevBalance) {
-      prevBalance = bn(0);
-    }
-
     const { error } = await this.supabaseClient.from('balances').upsert(
       {
         token,
-        balance: prevBalance.add(balance).toNumber(),
+        balance: balance,
       },
       { onConflict: 'token' }
     );

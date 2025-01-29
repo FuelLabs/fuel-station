@@ -9,10 +9,28 @@ const main = async () => {
   const provider = await Provider.create(env.FUEL_PROVIDER_URL);
   const wallet = Wallet.fromPrivateKey(fuelAccount.privateKey, provider);
 
+  const gaslessToken =
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjNhN2YxMzVkLTFlOWEtNDUxMi04MWNmLTMyNTNjOGY3ODVkNSIsImlhdCI6MTczODE0NzM3MH0.BoLYGpKgQQix7BB3a5dru8jKeG9OFrgQoiTLRhTTIlk';
+
+  console.log('gaslessToken', gaslessToken);
+
   const gasStationClient = new GasStationClient(
     env.FUEL_STATION_SERVER_URL,
-    provider
+    provider,
+    gaslessToken
   );
+
+  const balance = await gasStationClient.balance(gaslessToken);
+  console.log('balance', balance);
+
+  if (balance < env.FUNDING_AMOUNT) {
+    console.log('funding token');
+    const depositStatus = await gasStationClient.deposit(env.FUNDING_AMOUNT);
+    if (!depositStatus) {
+      console.error('failed to process deposit');
+      process.exit(1);
+    }
+  }
 
   const randomReciever = Wallet.generate();
 
