@@ -40,6 +40,7 @@ export const schedulerSetup = async ({
       name: 'AccountsUnlockManager',
       // 5 seconds
       intervalMs: 5000,
+      fuelProvider: await fuelClient.getProvider(),
     })
   );
 

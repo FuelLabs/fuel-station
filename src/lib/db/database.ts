@@ -105,11 +105,26 @@ export interface FuelStationDatabase {
           job_status: string;
           txn_hash: string | null;
           token: string;
-          prev_balance: BN;
+          coin_value_consumed: BN;
         };
       }
   >;
 
+  getJobByAccount(account: string): Promise<
+    | { error: PostgrestError; job: null }
+    | {
+        error: null;
+        job: {
+          address: string;
+          expiry: string;
+          job_id: string;
+          job_status: string;
+          txn_hash: string | null;
+          token: string;
+          coin_value_consumed: BN;
+        };
+      }
+  >;
   /**
    * Update job status
    */

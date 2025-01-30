@@ -248,7 +248,59 @@ export class SupabaseDB implements FuelStationDatabase {
     return {
       error: null,
       job: {
+        // TODO: check if need to add these fields, as they are already in the job object
         ...job,
+        address: job.address,
+        expiry: job.expiry,
+        job_status: job.job_status,
+        token: job.token,
+        coin_value_consumed: bn(job.coin_value_consumed),
+      },
+    };
+  }
+
+  async getJobByAccount(
+    account: string
+  ): Promise<
+    | { error: PostgrestError; job: null }
+    | { error: null; job: Database['public']['Tables']['jobs']['Row'] }
+  > {
+    const { account: accountData, error: accountError } =
+      await this.getAccount(account);
+
+    if (accountError) {
+      return { error: accountError, job: null };
+    }
+    if (!accountData.expiry) {
+      return {
+        error: new Error('Account expiry not found') as PostgrestError,
+        job: null,
+      };
+    }
+
+    const { data: jobData, error } = await this.supabaseClient
+      .from(JOB_TABLE_NAME)
+      .select('*')
+      .eq('address', account)
+      .eq('expiry', accountData.expiry);
+
+    if (error) {
+      return { error, job: null };
+    }
+
+    const job = jobData[0];
+    if (!job?.address || !job.expiry || !job.job_status) {
+      return {
+        error: new Error('Invalid job data') as PostgrestError,
+        job: null,
+      };
+    }
+
+    return {
+      error: null,
+      job: {
+        ...job,
+        // TODO: check if need to add these fields, as they are already in the job object
         address: job.address,
         expiry: job.expiry,
         job_status: job.job_status,
