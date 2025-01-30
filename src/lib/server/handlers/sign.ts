@@ -54,6 +54,38 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
   }
 
   if (new Date(job.expiry) < new Date()) {
+    // TODO: check if this is even possible? i.e at this point there is no balance in the account
+    const previousBalance = (await supabaseDB.getBalance(job.token)) ?? bn(0);
+
+    // TODO: we can extract a common function for this logic everywhere
+    // check if the transaction didn't happen, if not then re-credit the account
+    if (!job.txn_hash) {
+      const newBalance = previousBalance.add(job.coin_value_consumed);
+      const upsertBalanceError = await supabaseDB.upsertBalance(
+        job.token,
+        newBalance
+      );
+      if (upsertBalanceError) {
+        console.error(upsertBalanceError);
+        return res.status(500).json({ error: 'Failed to update balance' });
+      }
+    } else {
+      const fuelProvider = await fuelClient.getProvider();
+      const txn = fuelProvider.getTransaction(job.txn_hash);
+
+      if (txn === null) {
+        const newBalance = previousBalance.add(job.coin_value_consumed);
+        const upsertBalanceError = await supabaseDB.upsertBalance(
+          job.token,
+          newBalance
+        );
+        if (upsertBalanceError) {
+          console.error(upsertBalanceError);
+          return res.status(500).json({ error: 'Failed to update balance' });
+        }
+      }
+    }
+
     const unlockError = await supabaseDB.unlockAccount(job.address);
 
     if (unlockError) {
