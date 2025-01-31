@@ -27,18 +27,22 @@ export const allocateCoinHandler = async (
   let address: string | null = null;
 
   while (!coin) {
-    address = await supabaseDB.getNextAccount();
-    if (!address) {
+    const nextAccountAddress = await supabaseDB.getNextAccount();
+    if (!nextAccountAddress) {
       return res.status(404).json({ error: 'No unlocked account found' });
     }
 
-    const result = await fuelClient.getCoin(address, ENV.MINIMUM_COIN_VALUE);
+    const result = await fuelClient.getCoin(
+      nextAccountAddress,
+      ENV.MINIMUM_COIN_VALUE
+    );
     if (!result) {
-      await supabaseDB.setAccountNeedsFunding(address, true);
+      await supabaseDB.setAccountNeedsFunding(nextAccountAddress, true);
       continue;
     }
 
     coin = result;
+    address = nextAccountAddress;
   }
 
   if (!address) {
@@ -72,8 +76,6 @@ export const allocateCoinHandler = async (
     console.error(insertError);
     return res.status(500).json({ error: 'Failed to insert job' });
   }
-
-  console.log('jobId', jobId);
 
   const {
     success,
