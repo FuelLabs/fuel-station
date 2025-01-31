@@ -52,7 +52,6 @@ describe('server', async () => {
     database: supabaseDB,
     fuelClient: fuelClient,
     funderWallet: funderWallet,
-    isHttps: false,
     maxValuePerCoin,
     accounts,
   };

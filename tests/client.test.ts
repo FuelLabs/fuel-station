@@ -44,7 +44,6 @@ describe('client', async () => {
     database: new SupabaseDB(supabaseClient),
     fuelClient: fuelClient,
     funderWallet: funderWallet,
-    isHttps: false,
     maxValuePerCoin,
     accounts,
   };

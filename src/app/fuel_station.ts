@@ -42,7 +42,6 @@ const main = async () => {
     database,
     fuelClient,
     funderWallet,
-    isHttps: false,
     maxValuePerCoin,
     accounts,
   };

@@ -18,21 +18,18 @@ import { depositHandler } from './handlers/deposit';
 
 const ENV = envSchema.parse(process.env);
 
-console.log('ENV', ENV);
-
 export type GasStationServerConfig = {
   port: number;
   database: FuelStationDatabase;
   fuelClient: FuelClient;
   funderWallet: Wallet;
-  isHttps: boolean;
   maxValuePerCoin: BN;
   accounts: WalletUnlocked[];
 };
 
 export class GasStationServer {
   private config: GasStationServerConfig;
-  private server: https.Server | http.Server | null = null;
+  private server: http.Server | null = null;
 
   constructor(config: GasStationServerConfig) {
     this.config = config;
@@ -41,12 +38,10 @@ export class GasStationServer {
   async start() {
     const app = express();
 
-    const { port, isHttps } = this.config;
+    const { port } = this.config;
 
     app.locals.config = this.config;
     app.locals.ENV = ENV;
-
-    console.log('isHttps', isHttps);
 
     // TODO: check if we need this
     app.set('trust proxy', true);
