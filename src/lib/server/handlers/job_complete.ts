@@ -1,6 +1,5 @@
 import { bn } from 'fuels';
 import type { TypedRequest, TypedResponse } from '../../../types';
-import type { SupabaseDB } from '../../db';
 import type { GasStationServerConfig } from '../server';
 
 export const jobCompleteHandler = async (
@@ -13,7 +12,7 @@ export const jobCompleteHandler = async (
   const config = req.app.locals.config as GasStationServerConfig;
   const { database: supabaseDB, fuelClient } = config;
 
-  const { jobId, txnHash } = req.params;
+  const { jobId } = req.params;
 
   const { error: getJobError, job } = await supabaseDB.getJob(jobId);
   if (getJobError) {

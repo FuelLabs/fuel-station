@@ -21,12 +21,9 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
     return res.status(400).json({ error: 'Invalid request body' });
   }
 
-  // console.log('req.body', data);
-
   const scriptRequest = data.request;
 
   const jobId = data.jobId;
-  console.log('jobId', jobId);
 
   const { error: getJobError, job } = await supabaseDB.getJob(jobId);
   if (getJobError) {
@@ -95,12 +92,6 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
 
     return res.status(400).json({ error: 'Job expired' });
   }
-
-  console.log(
-    'accounts',
-    accounts.map((account) => account.address.toB256())
-  );
-  console.log('job.address', job.address);
 
   const account = accounts.find(
     ({ address }) =>
