@@ -23,7 +23,7 @@ export const schedulerSetup = async ({
   fundingAmount,
   accounts,
 }: SchedulerConfig) => {
-  // upsert all accounts to the database
+  console.log('h1');
   await database.upsertAccounts(
     accounts.map((account) => ({
       address: account.address.toB256(),

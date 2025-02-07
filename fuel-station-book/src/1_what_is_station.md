@@ -12,7 +12,6 @@ The gas coin can only be spent, if the user has a valid signature from the fuel 
 
 <img src="https://github.com/bajpai244/fuel-station/blob/main/fuel-station-book/assets/1-sequence-diagram.png?raw=true" alt="Sequence Diagram" style="max-width: 600px;">
 
-
 ## How do we prevent spam?
 
 Users need to have a certain amount of deposit in their account with Station, and every 30 seconds, the account that provided the gas coin will be unlocked. This is to prevent spam. So, a user of the gas paymaster cannot keep an account locked for a long time.

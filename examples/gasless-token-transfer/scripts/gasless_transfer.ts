@@ -1,35 +1,34 @@
 import { Provider, ScriptTransactionRequest, Wallet } from 'fuels';
-import { envSchema } from '../../../src/lib/schema/config';
 import { fuelAccount, assetId } from '../depolyments.json';
 import { GasStationClient } from '../../../src/lib/client';
+import { gaslessTransferEnvScheme } from '../src';
 
 const main = async () => {
-  const env = envSchema.parse(process.env);
+  const env = gaslessTransferEnvScheme.parse(process.env);
 
-  const provider = await Provider.create(env.FUEL_PROVIDER_URL);
+  const provider = await Provider.create(env.PROVIDER_URL);
   const wallet = Wallet.fromPrivateKey(fuelAccount.privateKey, provider);
 
-  const gaslessToken =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbiI6IjNhN2YxMzVkLTFlOWEtNDUxMi04MWNmLTMyNTNjOGY3ODVkNSIsImlhdCI6MTczODE0NzM3MH0.BoLYGpKgQQix7BB3a5dru8jKeG9OFrgQoiTLRhTTIlk';
+  const gaslessToken = env.AUTH_TOKEN;
 
   console.log('gaslessToken', gaslessToken);
 
   const gasStationClient = new GasStationClient(
-    env.FUEL_STATION_SERVER_URL,
+    env.STATION_SERVER_URL,
     provider,
     gaslessToken
   );
 
-  const balance = await gasStationClient.balance(gaslessToken);
-  console.log('balance', balance);
+  // this is the balance for the particular auth token in the gas station
+  // this needs to be above a certain amount to be able to send a transaction
+  const gasStationBalance = await gasStationClient.balance();
+  console.log(
+    `gasStationBalance for the token ${gaslessToken} is ${gasStationBalance}`
+  );
 
-  if (balance < env.FUNDING_AMOUNT) {
-    console.log('funding token');
-    const depositStatus = await gasStationClient.deposit(env.FUNDING_AMOUNT);
-    if (!depositStatus) {
-      console.error('failed to process deposit');
-      process.exit(1);
-    }
+  if (gasStationBalance <= 0) {
+    console.error('gasStationBalance is 0 or less, please fund the token');
+    process.exit(1);
   }
 
   const randomReciever = Wallet.generate();
@@ -46,7 +45,7 @@ const main = async () => {
   // NOTE: addCoinInput automatically adds a change output for that particular asset's coin to the same address
   request.outputs = [];
 
-  request.addCoinOutput(randomReciever.address, 100, assetId.bits);
+  request.addCoinOutput(randomReciever.address, coins[0].amount, assetId.bits);
 
   const { transaction, gasCoin, jobId } =
     await gasStationClient.prepareGaslessTransaction(request);
@@ -57,21 +56,21 @@ const main = async () => {
     await provider.getBalance(randomReciever.address, assetId.bits)
   );
 
-  // const txResult = await (
-  await gasStationClient.sendTransaction({
-    transaction: request,
-    wallet,
-    gasCoin,
-    jobId,
-  });
-  // ).waitForResult();
+  const txResult = await (
+    await gasStationClient.sendTransaction({
+      transaction: request,
+      wallet,
+      gasCoin,
+      jobId,
+    })
+  ).waitForResult();
 
-  // console.log('tx status:', txResult.status);
+  console.log('tx status:', txResult.status);
 
-  // console.log(
-  //   'balance of reciever after:',
-  //   await provider.getBalance(randomReciever.address, assetId.bits)
-  // );
+  console.log(
+    'balance of reciever after:',
+    await provider.getBalance(randomReciever.address, assetId.bits)
+  );
 };
 
 main();

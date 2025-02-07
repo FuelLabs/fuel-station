@@ -116,6 +116,7 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
     job.address,
     fuelClient.getBaseAssetId()
   );
+
   if (!outputCoin) {
     return res.status(404).json({ error: 'Output coin not found' });
   }
@@ -125,6 +126,7 @@ export const signHandler = async (req: SignRequest, res: SignResponse) => {
   const prevBalance = (await supabaseDB.getBalance(job.token)) as BN;
 
   if (prevBalance.lt(coinValueConsumed)) {
+    console.log('insufficient balance');
     return res.status(400).json({ error: 'Insufficient balance' });
   }
 

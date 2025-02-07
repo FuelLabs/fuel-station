@@ -1,15 +1,15 @@
 import { Provider, Wallet } from 'fuels';
 import { config } from 'dotenv';
-import { envSchema } from '../../../src/lib/schema/config';
+import { gaslessTransferEnvScheme } from '../src';
 import { fuelAccount } from '../depolyments.json';
 
 config();
 
 const main = async () => {
-  const env = envSchema.parse(process.env);
+  const env = gaslessTransferEnvScheme.parse(process.env);
 
   // Create a provider.
-  const FUEL_PROVIDER_URL = env.FUEL_PROVIDER_URL;
+  const FUEL_PROVIDER_URL = env.PROVIDER_URL;
   if (!FUEL_PROVIDER_URL) {
     console.error(
       'FUEL_PROVIDER_URL is not defined in the environment variables.'

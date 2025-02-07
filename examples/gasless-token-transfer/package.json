@@ -1,0 +1,23 @@
+{
+  "name": "gasless-token-transfer",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "deploy": "bun run scripts/deploy.ts",
+    "mint": "bun run scripts/mint_stablecoin.ts",
+    "balance": "bun run scripts/balance.ts",
+    "send": "bun run scripts/gasless_transfer.ts",
+    "fmt": "prettier --write \"./**/*.{js,ts,jsx,tsx,json,md}\""
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "fuels": "^0.97.0",
+    "zod": "^3.24.1"
+  }
+}

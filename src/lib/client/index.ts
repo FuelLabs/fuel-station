@@ -3,9 +3,11 @@ import {
   Address,
   bn,
   InputType,
+  OutputType,
   type Provider,
   type Coin,
   type InputCoin,
+  type OutputCoin,
   type ScriptTransactionRequest,
   type WalletUnlocked,
 } from 'fuels';
@@ -65,15 +67,10 @@ export class GasStationClient {
 
     transaction.addCoinInput(gasCoin);
 
-    const { data: maxValuePerCoinResponseData } = await axios.get(
-      `${this.endpoint}/metadata`
-    );
-
-    const maxValuePerCoin = bn(maxValuePerCoinResponseData.maxValuePerCoin);
-
+    // NOTE: we change this value later on during sendTransaction
     transaction.addCoinOutput(
       gasCoin.owner,
-      gasCoin.amount.sub(maxValuePerCoin),
+      0,
       gasCoin.assetId
     );
 
@@ -108,20 +105,6 @@ export class GasStationClient {
       transaction.gasLimit = result.maxGas;
     }
 
-    const { data: signatureResponseData } = await axios.post(
-      `${this.endpoint}/sign`,
-      {
-        request: transaction.toJSON(),
-        jobId,
-      }
-    );
-
-    if (!signatureResponseData.signature) {
-      throw new Error('No signature found');
-    }
-
-    const signature = signatureResponseData.signature;
-
     const gasCoinInput = transaction.inputs.find((input) => {
       if (input.type === InputType.Coin) {
         return (
@@ -137,6 +120,36 @@ export class GasStationClient {
     if (!gasCoinInput) {
       throw new Error('Gas coin input not found');
     }
+
+
+    const gasCoinOutput = transaction.outputs.find((txOutput) => {
+        if(txOutput.type === OutputType.Coin ) {
+          if(txOutput.to === gasCoin.owner.toB256() && txOutput.assetId === this.fuelProvider.getBaseAssetId()) {
+            return true;
+          }
+        }
+    }) as OutputCoin | undefined;
+
+    if (!gasCoinOutput) {
+      throw new Error('Gas coin output not found');
+    }
+
+    gasCoinOutput.amount = gasCoinInput.amount.sub(transaction.maxFee);
+
+    const { data: signatureResponseData } = await axios.post(
+      `${this.endpoint}/sign`,
+      {
+        request: transaction.toJSON(),
+        jobId,
+      }
+    );
+
+    if (!signatureResponseData.signature) {
+      throw new Error('No signature found');
+    }
+
+    const signature = signatureResponseData.signature;
+
 
     const witnessIndex = gasCoinInput.witnessIndex;
     transaction.witnesses[witnessIndex] = signature;

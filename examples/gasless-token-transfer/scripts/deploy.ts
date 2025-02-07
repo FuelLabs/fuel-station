@@ -1,16 +1,15 @@
 import { createAssetId, Provider, Wallet, ZeroBytes32 } from 'fuels';
 import { config } from 'dotenv';
-import { DummyStablecoinFactory } from '../src';
-import { envSchema } from '../../../src/lib/schema/config';
+import { DummyStablecoinFactory, gaslessTransferEnvScheme } from '../src';
 import { writeFileSync } from 'node:fs';
 
 config();
 
 const main = async () => {
-  const env = envSchema.parse(process.env);
+  const env = gaslessTransferEnvScheme.parse(process.env);
 
   // Create a provider.
-  const FUEL_PROVIDER_URL = env.FUEL_PROVIDER_URL;
+  const FUEL_PROVIDER_URL = env.PROVIDER_URL;
   if (!FUEL_PROVIDER_URL) {
     console.error(
       'FUEL_PROVIDER_URL is not defined in the environment variables.'
@@ -21,7 +20,7 @@ const main = async () => {
   const provider = await Provider.create(FUEL_PROVIDER_URL);
 
   // Create our wallet (with a private key).
-  const PRIVATE_KEY = env.FUEL_FUNDER_PRIVATE_KEY;
+  const PRIVATE_KEY = env.PRIVATE_KEY;
   if (!PRIVATE_KEY) {
     console.error('PRIVATE_KEY is not defined in the environment variables.');
     process.exit(1);
@@ -41,7 +40,7 @@ const main = async () => {
   const fuelAccount = Wallet.generate();
 
   writeFileSync(
-    './examples/gasless-token-transfer/depolyments.json',
+    './depolyments.json',
     JSON.stringify(
       {
         contractId,

@@ -1,6 +1,8 @@
 # Getting Started
 
-In this chapter, we will enable gasless token transfer via the service, it will run via the testnet, but you can run it locally as well.
+In this chapter, we will enable gasless token transfer via the service. The station software runs over a REST endpoint, and typescript client is available to interact with the service.
+
+The service can be self hosted, or you can use the public instance. For the purpose of this example, we will use the public instance hosted over Fuel testnet.
 
 Look for `gasless-token-transfer` in the `examples` folder at the root of the repository.
 
@@ -119,4 +121,3 @@ If you see the logs, we were able to complete a gasless transfer here of this du
 Checking the balance again would reveal that the balance of the stable coin for the fuel address is `0x0`, since it has been transferred to the receiver.
 
 You can run `bun run gasless-token-example-balance` from the project root to check this.
-
