@@ -1,8 +1,8 @@
 <img src="./assets/logo.png" alt="fuel-station" width="100" style="border-radius: 100%;">
 
-# fuel-station
+# Station
 
-fuel-station is a non-custodial gas paymaster, this repo contains a demo implementation of the mentioned prototype.
+Station is a non-custodial gas paymaster for the Fuel network, this repo contains a demo implementation of the mentioned prototype.
 
 <img src="./assets/image.png" alt="fuel-station" width="350">
 

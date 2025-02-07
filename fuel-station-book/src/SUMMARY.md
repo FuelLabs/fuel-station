@@ -1,7 +1,9 @@
 # Summary
 
-- [What is Fuel Station?](./1_what_is_fuel_station.md)
+- [What is Station?](./1_what_is_station.md)
 
-- [Running Fuel Station locally](./2_running_fuel_station_locally.md)
+- [Getting Started](./2_getting_started.md)
 
-- [Gasless token transfer](./3_gasless_token_transfer.md)
+- [Running Station locally](./3_running_station_locally.md)
+
+- [Gasless token transfer](./4_gasless_token_transfer.md)
