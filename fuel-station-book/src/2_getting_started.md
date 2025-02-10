@@ -112,45 +112,33 @@ const gasStationClient = new GasStationClient(
 );
 ```
 
-### Preparing the gasless transaction
+### Preparing your script transaction request
 
-Once the user has built their transaction, they need to call the `prepareGaslessTransaction` method on the paymaster client, this will return a transaction with the gascoin as input included in the transaction, along with the respective output coins in place!
+The the gas paymaster works with script transaction requests, so you need to prepare your script transaction request first.
 
 ```
- const { transaction, gasCoin, jobId } =
-    await gasStationClient.prepareGaslessTransaction(request);
-  request = transaction;
-```
+  const request = new ScriptTransactionRequest();
 
-If you want to adjust few things with the transaction, you can do that, otherwise you can send the transaction by calling the `sendTransaction` method on the paymaster client.
+  // add your inputs, outputs, etc.
+```
 
 ### Sending the transaction
 
-The gas paymaster client provides a `sendTransaction` method, which will send the transaction to the fuel network, it will also do transaction estimation under the hood, so it can be skipped if need be.
+The station client provides a `sendTransaction` method, that will do the following:
+
+- add gas coin input and output by interacting with the station server
+- estimate the gas of the transaction
+- sending it for signing to the station server
+- send the signed transaction to the fuel network
+
+For the developer's perspective, the `sendTransaction` method is similar to what `Provider.sendTransaction` returns, so you can use the same methods to check the status of the transaction.
 
 ```
   const txResult = await (
-    await gasStationClient.sendTransaction({
-      transaction: request,
-      wallet,
-      gasCoin,
-      jobId,
-    })
+    await gasStationClient.sendTransaction(request, wallet)
   ).waitForResult();
 ```
 
-The result of the `sendTransaction` method is similar to what `Provider.sendTransaction` returns, so you can use the same methods to check the status of the transaction.
+Hence, with the station client, just with a single `sendTransaction` call, we were able to do a gasless transfer!
 
-Now, we have some understanding of what this script is doing, let's run it!
-
-From the root of the main repository, run the following command:
-
-```
-bun run gasless-token-example-send
-```
-
-If you see the logs, we were able to complete a gasless transfer here of this dummy stable coin!
-
-Checking the balance again would reveal that the balance of the stable coin for the fuel address is `0x0`, since it has been transferred to the receiver.
-
-You can run `bun run gasless-token-example-balance` from the project root to check this.
+The client takes care of all the complexities of the paymater under the hood.

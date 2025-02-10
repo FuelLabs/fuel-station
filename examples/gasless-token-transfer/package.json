@@ -10,9 +10,9 @@
   },
   "scripts": {
     "deploy": "bun run scripts/deploy.ts",
-    "mint": "bun run scripts/mint_stablecoin.ts",
+    "mint": "bun run scripts/mint.ts",
     "balance": "bun run scripts/balance.ts",
-    "send": "bun run scripts/gasless_transfer.ts",
+    "send": "bun run scripts/transfer.ts",
     "fmt": "prettier --write \"./**/*.{js,ts,jsx,tsx,json,md}\""
   },
   "dependencies": {
