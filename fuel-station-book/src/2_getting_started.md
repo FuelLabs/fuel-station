@@ -15,21 +15,35 @@ examples/gasless-token-transfer
     ├── dummy_stable_coin_artifact
     ├── index.ts
 ├── scripts
-    ├── deploy_stable_coin.ts
-    ├── fund_paymaster.ts
-    ├── transfer_stable_coin.ts
+    ├── balance.ts
+    ├── deploy.ts
+    ├── mint.ts
+    ├── transfer.ts
+    ├── deposit.ts
 ```
 
 Here, we have a dummy stable coin contract, located in `dummy_stable_coin`. We will use this to test the gasless token transfer.
 
-**NOTE**: You need to be at the root of the main repository to run the scripts and not in the `examples/gasless-token-transfer` directory.
+## Step 0: Basic setup
+
+First, change into the `examples/gasless-token-transfer` directory:
+
+```
+cd examples/gasless-token-transfer
+```
+
+Then, install the dependencies:
+
+```
+bun install
+```
 
 ## Step 1: Deploy the stable coin
 
 To deploy this stable coin, from the root of the main repository, run the following command:
 
 ```
-bun run gasless-token-example-deploy
+bun run deploy
 ```
 
 This will deploy the stable coin, and save the details in a `deployments.json` file in the `examples/gasless-token-transfer` directory.
@@ -41,24 +55,24 @@ This file contains the contract details and a random fuel address that we can mi
 To mint the stable coin, from the root of the main repository, run the following command:
 
 ```
-bun run gasless-token-example-mint
+bun run mint
 ```
 
 This will mint the stable coin to the fuel address in the `deployments.json` file.
 
-### Step 3: Check the balance:
+## Step 3: Check the balance:
 
 To check the balance of the stable coin for the fuel address, from the root of the main repository, run the following command:
 
 ```
-bun run gasless-token-example-balance
+bun run balance
 ```
 
 This will print the balance of the stable coin for the fuel address. It should be `0x64`
 
-### Step 4: Use the paymaster to do a gasless transfer
+## Step 4: Use the paymaster to do a gasless transfer
 
-The script that performs the gasless transfer is in `examples/gasless-token-transfer/scripts/gasless_transfer.ts`.
+The script that performs the gasless transfer is in `examples/gasless-token-transfer/scripts/transfer.ts`.
 
 It uses the paymaster client provided by the fuel station server to perform a gasless transfer.
 
@@ -66,11 +80,30 @@ The scripts does the following:
 
 - create a script transaction with:
   - the stable coin of value `0x64` as input
-  - sending `0x64` value of this coin to a random receiver address
-- It then uses the paymaster client to get the gascoin and send the transaction
-- post succesfull run, `bun run gasless-token-example-balance` should show the balance of the to be `0`, as all of the stable coin has been transferred to the receiver.
+  - sending `0x64` value of this coin to a random receiver address (so, we are burning the coin)
+- Uses the paymaster client to send the transaction
+
+To run the script, do the following:
+
+```
+bun run transfer
+```
+
+Now, you can check the balance of the stable coin again!
+
+```
+bun run balance
+```
+
+You will see it is now `0`, which means we were able to transfer the coin without having any eth for gas via the paymaster.
+
+## Understanding the code
+
+Now, let's understand the code of the script that performs the gasless transfer.
 
 ### Initializing the gas paymaster client
+
+The first step to using a paymaster is to initialize the paymaster client.
 
 ```typescript
 const gasStationClient = new GasStationClient(

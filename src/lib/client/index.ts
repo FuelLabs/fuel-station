@@ -38,7 +38,16 @@ export class GasStationClient {
     return data.status;
   }
 
-  async prepareGaslessTransaction(transaction: ScriptTransactionRequest) {
+  async balance(): Promise<number> {
+    const { data } = await axios.get(`${this.endpoint}/balance/${this.token}`);
+
+    return data.balance;
+  }
+
+  async sendTransaction(
+    transaction: ScriptTransactionRequest,
+    wallet: WalletUnlocked
+  ) {
     const { data: allocateCoinResponseData } = await axios.post(
       `${this.endpoint}/allocate-coin`,
       {
@@ -67,74 +76,32 @@ export class GasStationClient {
 
     transaction.addCoinInput(gasCoin);
 
-    // NOTE: we change this value later on during sendTransaction
-    transaction.addCoinOutput(
-      gasCoin.owner,
-      0,
-      gasCoin.assetId
-    );
+    transaction.addCoinOutput(gasCoin.owner, 0, gasCoin.assetId);
 
-    return { transaction, gasCoin, jobId };
-  }
+    const result = await this.fuelProvider.estimateTxGasAndFee({
+      transactionRequest: transaction,
+    });
 
-  async balance(): Promise<number> {
-    const { data } = await axios.get(`${this.endpoint}/balance/${this.token}`);
+    transaction.maxFee = result.maxFee;
+    transaction.gasLimit = result.maxGas;
 
-    return data.balance;
-  }
-
-  async sendTransaction({
-    transaction,
-    gasCoin,
-    wallet,
-    jobId,
-    skipEstimate,
-  }: {
-    transaction: ScriptTransactionRequest;
-    wallet: WalletUnlocked;
-    gasCoin: Coin;
-    jobId: string;
-    skipEstimate?: boolean;
-  }) {
-    if (!skipEstimate) {
-      const result = await this.fuelProvider.estimateTxGasAndFee({
-        transactionRequest: transaction,
-      });
-
-      transaction.maxFee = result.maxFee;
-      transaction.gasLimit = result.maxGas;
-    }
-
-    const gasCoinInput = transaction.inputs.find((input) => {
-      if (input.type === InputType.Coin) {
-        return (
-          input.owner === gasCoin.owner.toB256() &&
-          input.assetId === gasCoin.assetId
-        );
-      }
-
-      return false;
-    }) as InputCoin | undefined;
-
-    // we should never reach this branch of code
-    if (!gasCoinInput) {
-      throw new Error('Gas coin input not found');
-    }
-
-
-    const gasCoinOutput = transaction.outputs.find((txOutput) => {
-        if(txOutput.type === OutputType.Coin ) {
-          if(txOutput.to === gasCoin.owner.toB256() && txOutput.assetId === this.fuelProvider.getBaseAssetId()) {
-            return true;
-          }
+    const gasCoinOutput = transaction.outputs.find((output) => {
+      if (output.type === OutputType.Coin) {
+        if (
+          output.to === gasCoin.owner.toB256() &&
+          output.assetId === gasCoin.assetId
+        ) {
+          return true;
         }
+      }
     }) as OutputCoin | undefined;
 
+    // we should never reach this branch of code
     if (!gasCoinOutput) {
       throw new Error('Gas coin output not found');
     }
 
-    gasCoinOutput.amount = gasCoinInput.amount.sub(transaction.maxFee);
+    gasCoinOutput.amount = gasCoin.amount.sub(transaction.maxFee);
 
     const { data: signatureResponseData } = await axios.post(
       `${this.endpoint}/sign`,
@@ -150,6 +117,19 @@ export class GasStationClient {
 
     const signature = signatureResponseData.signature;
 
+    const gasCoinInput = transaction.inputs.find((input) => {
+      if (input.type === InputType.Coin) {
+        return (
+          input.owner === gasCoin.owner.toB256() &&
+          input.assetId === gasCoin.assetId
+        );
+      }
+    }) as InputCoin | undefined;
+
+    // we should never reach this branch of code
+    if (!gasCoinInput) {
+      throw new Error('Gas coin input not found');
+    }
 
     const witnessIndex = gasCoinInput.witnessIndex;
     transaction.witnesses[witnessIndex] = signature;
