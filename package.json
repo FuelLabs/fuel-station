@@ -11,9 +11,6 @@
     "init-accounts": "bun scripts/init_accounts.ts",
     "unlock-accounts": "bun scripts/unlock_all_accounts.ts",
     "show-balances-of-coin-accounts": "bun scripts/show_balances_of_coin_account.ts",
-    "deploy-counter": "bun run counter_example/scripts/deploy_counter.ts",
-    "increase-count": "bun run counter_example/scripts/increase_count.ts",
-    "get-count": "bun run counter_example/scripts/get_count.ts",
     "gen-supabase-types": "sudo supabase gen types typescript --local > src/types/database.types.ts",
     "gen-jwt-key": "bun run scripts/gen_jwt_key.ts"
   },
