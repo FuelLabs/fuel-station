@@ -21,8 +21,6 @@ import {
 import axios from 'axios';
 
 describe('server', async () => {
-  const maxValuePerCoin = bn(10000);
-
   const env = envSchema.parse(process.env);
   const supabaseClient = createClient(
     env.SUPABASE_URL,
@@ -52,7 +50,6 @@ describe('server', async () => {
     database: supabaseDB,
     fuelClient: fuelClient,
     funderWallet: funderWallet,
-    maxValuePerCoin,
     accounts,
   };
 
@@ -84,7 +81,6 @@ describe('server', async () => {
     );
 
     expect(response.status).toBe(200);
-    expect(bn(response.data.maxValuePerCoin)).toEqual(maxValuePerCoin);
   });
 
   test(
@@ -129,7 +125,8 @@ describe('server', async () => {
     scriptTransaction.addCoinInput(gasCoin);
     scriptTransaction.addCoinOutput(
       Address.fromAddressOrString(gasCoin.owner),
-      gasCoin.amount.sub(maxValuePerCoin),
+      // TODO: put this amount in a variable
+      gasCoin.amount.sub(1000),
       gasCoin.assetId
     );
 

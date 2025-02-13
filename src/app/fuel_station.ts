@@ -13,8 +13,6 @@ import { bn, Provider, Wallet } from 'fuels';
 const main = async () => {
   const env = envSchema.parse(process.env);
 
-  const maxValuePerCoin = bn(env.MAX_VALUE_PER_COIN);
-
   const supabaseClient = createClient(
     env.SUPABASE_URL,
     env.SUPABASE_SERVICE_ROLE_KEY
@@ -45,7 +43,6 @@ const main = async () => {
     database,
     fuelClient,
     funderWallet,
-    maxValuePerCoin,
     accounts,
   };
 

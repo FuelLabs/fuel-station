@@ -13,8 +13,6 @@ import { bn, Provider, ScriptTransactionRequest, Wallet } from 'fuels';
 import { GasStationClient } from '../src/lib/client';
 
 describe('client', async () => {
-  const maxValuePerCoin = bn(10000);
-
   const env = envSchema.parse(process.env);
   const supabaseClient = createClient(
     env.SUPABASE_URL,
@@ -44,7 +42,6 @@ describe('client', async () => {
     database: new SupabaseDB(supabaseClient),
     fuelClient: fuelClient,
     funderWallet: funderWallet,
-    maxValuePerCoin,
     accounts,
   };
 

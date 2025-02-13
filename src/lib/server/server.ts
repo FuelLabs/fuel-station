@@ -21,7 +21,6 @@ export type GasStationServerConfig = {
   database: FuelStationDatabase;
   fuelClient: FuelClient;
   funderWallet: Wallet;
-  maxValuePerCoin: BN;
   accounts: WalletUnlocked[];
 };
 
