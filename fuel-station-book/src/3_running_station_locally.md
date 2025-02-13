@@ -72,10 +72,11 @@ small notes on the variables:
 - `FUEL_PAYMASTER_MNEMONIC`: This is the mnemonic that will be used to generate the paymaster accounts.
 - `MINIMUM_COIN_VALUE`: This is the minimum balance below which the paymaster account needs to be funded again by funding account.
 - `FUNDING_AMOUNT`: This is the amount of coins to fund each paymaster account with.
-- `MAX_VALUE_PER_COIN`: This is the maximum value that can be spent per transaction from a gas coin. For example, if this is set to `1000`, then if the paymaster gas coin is worth 5000, then the user can only spend 1000 from the gas coin.
 - `NUM_OF_ACCOUNTS`: This is the number of accounts to generate and use as paymaster accounts.
 
 ## Run the server
+
+NOTE: Before running the server, make sure the account belonging to `FUEL_FUNDER_PRIVATE_KEY` has some balance to be able to fund the paymaster accounts.
 
 Post the env variables, you can run the server by running the following command:
 
