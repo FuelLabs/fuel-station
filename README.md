@@ -18,6 +18,10 @@ If you don't have `mdbook` installed, you can install it by running `cargo insta
 
 Then go to your browser and open `http://localhost:3001/` to read the book.
 
+## Video Demo
+
+[![Watch the video](https://cdn.loom.com/sessions/thumbnails/87952bf1096944adb203b16e7c9f2688-3d789b141945e94c-full-play.gif)](https://www.loom.com/share/87952bf1096944adb203b16e7c9f2688)
+
 ## API Documentation
 
 ### GET /health
