@@ -3,7 +3,7 @@ import { envSchema, generateMnemonicWallets } from '../src/lib';
 
 const main = async () => {
   const env = envSchema.parse(process.env);
-  const provider = await Provider.create(env.FUEL_PROVIDER_URL);
+  const provider = new Provider(env.FUEL_PROVIDER_URL);
 
   const accounts = generateMnemonicWallets(
     env.FUEL_PAYMASTER_MNEMONIC,
@@ -13,7 +13,7 @@ const main = async () => {
   for (const account of accounts) {
     const balance = await provider.getBalance(
       account.address,
-      provider.getBaseAssetId()
+      await provider.getBaseAssetId()
     );
     console.log(`${account.address}: ${balance}`);
   }

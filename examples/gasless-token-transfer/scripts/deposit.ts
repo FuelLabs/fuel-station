@@ -6,7 +6,7 @@ import { gaslessTransferEnvScheme } from '../src';
 const main = async () => {
   const env = gaslessTransferEnvScheme.parse(process.env);
 
-  const provider = await Provider.create(env.PROVIDER_URL);
+  const provider = new Provider(env.PROVIDER_URL);
   const gaslessToken = env.AUTH_TOKEN;
 
   console.log('gaslessToken', gaslessToken);

@@ -7,9 +7,9 @@ const ADDRESS =
 const main = async () => {
   const env = envSchema.parse(process.env);
 
-  const provider = await Provider.create(env.FUEL_PROVIDER_URL);
+  const provider = new Provider(env.FUEL_PROVIDER_URL);
 
-  const coins = await provider.getCoins(ADDRESS, provider.getBaseAssetId());
+  const coins = await provider.getCoins(ADDRESS, await provider.getBaseAssetId());
 
   console.log(coins);
 };

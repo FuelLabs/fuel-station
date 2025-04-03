@@ -95,8 +95,8 @@ export class SmallCoinsManager extends RoutineJob {
       request.gasLimit = result.maxGas;
 
       // we find the output coin and set the amount to the total coin value minus the max fee
-      request.outputs.forEach((output, index) => {
-        if (output.type === 0 && output.assetId === provider.getBaseAssetId()) {
+      request.outputs.forEach(async (output, index) => {
+        if (output.type === 0 && output.assetId === await provider.getBaseAssetId()) {
           output.amount = totalCoinValue.sub(result.maxFee);
           request.outputs[index] = output;
         }

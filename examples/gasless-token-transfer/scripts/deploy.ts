@@ -7,7 +7,11 @@ config();
 
 const main = async () => {
   const env = gaslessTransferEnvScheme.parse(process.env);
+  // const NETWORK_URL = 'https://testnet.fuel.network/v1/graphql';
+ 
+  // const provider = new Provider(NETWORK_URL);
 
+  
   // Create a provider.
   const FUEL_PROVIDER_URL = env.PROVIDER_URL;
   if (!FUEL_PROVIDER_URL) {
@@ -17,7 +21,7 @@ const main = async () => {
     process.exit(1);
   }
 
-  const provider = await Provider.create(FUEL_PROVIDER_URL);
+  const provider = new Provider(FUEL_PROVIDER_URL);
 
   // Create our wallet (with a private key).
   const PRIVATE_KEY = env.PRIVATE_KEY;

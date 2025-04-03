@@ -18,11 +18,17 @@ export class FuelClient {
     this.funderWallet = param.funderWallet;
     this.minimumCoinValue = param.minimumCoinValue;
 
-    this.baseAssetId = this.provider.getBaseAssetId();
+    // Initialize baseAssetId asynchronously
+    this.baseAssetId = '';
+    this.initializeBaseAssetId();
+  }
+
+  private async initializeBaseAssetId() {
+    this.baseAssetId = await this.provider.getBaseAssetId();
   }
 
   async getProvider(): Promise<Provider> {
-    return Provider.create(this.provider.url);
+    return new Provider(this.provider.url);
   }
 
   getBaseAssetId(): string {
@@ -64,12 +70,20 @@ export class FuelClient {
     walletAddress: string,
     coinSmallerThan: number
   ): Promise<Coin[]> {
-    const { coins } = await this.provider.getCoins(
-      walletAddress,
-      this.baseAssetId
-    );
+    try {
+      const { coins } = await this.provider.getCoins(
+        walletAddress,
+        this.baseAssetId
+      );
 
-    return coins.filter((coin) => coin.amount.lt(coinSmallerThan));
+      return coins.filter((coin) => {
+        const amount = coin.amount.toNumber();
+        return amount < coinSmallerThan;
+      });
+    } catch (error) {
+      console.error('Error getting small coins:', error);
+      return [];
+    }
   }
 
   // TODO: We need to remove this
@@ -81,7 +95,7 @@ export class FuelClient {
     while (true) {
       const result = await this.provider.getCoins(
         wallet.address,
-        this.provider.getBaseAssetId(),
+        await this.provider.getBaseAssetId(),
         {
           after: nextCursor,
         }
@@ -105,7 +119,7 @@ export class FuelClient {
   async getFunderBalance(): Promise<BN> {
     return await this.provider.getBalance(
       this.funderWallet.address,
-      this.provider.getBaseAssetId()
+      await this.provider.getBaseAssetId()
     );
   }
 

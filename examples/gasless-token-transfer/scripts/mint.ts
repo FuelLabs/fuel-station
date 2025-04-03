@@ -18,7 +18,7 @@ const main = async () => {
     process.exit(1);
   }
 
-  const provider = await Provider.create(FUEL_PROVIDER_URL);
+  const provider = new Provider(FUEL_PROVIDER_URL);
 
   // Create our wallet (with a private key).
   const PRIVATE_KEY = env.PRIVATE_KEY;
