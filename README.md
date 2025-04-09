@@ -18,9 +18,13 @@ If you don't have `mdbook` installed, you can install it by running `cargo insta
 
 Then go to your browser and open `http://localhost:3001/` to read the book.
 
-## Video Demo
+## Video Demo: Running Fuel Station
 
-[![Watch the video](https://cdn.loom.com/sessions/thumbnails/87952bf1096944adb203b16e7c9f2688-3d789b141945e94c-full-play.gif)](https://www.loom.com/share/87952bf1096944adb203b16e7c9f2688)
+[![Watch the video](https://cdn.loom.com/sessions/thumbnails/87952bf1096944adb203b16e7c9f2688-3d789b141945e94c-full-play.gif)](https://youtu.be/maRDd_Ycb70)
+
+Step-by-step how to:  
+- Deploy the Fuel Station server
+- Enable **gasless transactions** for any token  
 
 ## API Documentation
 
