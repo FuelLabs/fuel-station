@@ -13,6 +13,7 @@ import {
   depositHandler,
 } from './handlers';
 import type { FuelStationDatabase } from '../db/database';
+import cors from 'cors';
 
 const ENV = envSchema.parse(process.env);
 
@@ -34,6 +35,10 @@ export class GasStationServer {
 
   async start() {
     const app = express();
+    
+    app.use(cors({
+      origin: 'http://localhost:5173', // only allow React app's origin
+    }));
 
     const { port } = this.config;
 
